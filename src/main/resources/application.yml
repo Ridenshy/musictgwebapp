@@ -1,0 +1,19 @@
+spring:
+
+  application:
+    name: TgMusicMiniApp
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+
+  config:
+    use-legacy-processing: false
+    import:
+     - classpath:telegramValues.yml
+     - classpath:databaseConnection.yml
+

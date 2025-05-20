@@ -2,51 +2,72 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.tim.TgMusicMiniApp.App.dto.BotSettingsDto;
 import ru.tim.TgMusicMiniApp.App.dto.SettingsDto;
-import ru.tim.TgMusicMiniApp.App.dto.mapper.BotSettingsDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.SettingsMapper;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
 import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
 import ru.tim.TgMusicMiniApp.App.service.SettingsService;
-import ru.tim.TgMusicMiniApp.App.service.TypeSettingsService;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class SettingsServiceImpl implements SettingsService {
 
-    SettingsRepository settingsRepository;
-    SettingsMapper settingsMapper;
+    private final SettingsRepository settingsRepository;
+    private final SettingsMapper settingsMapper;
 
     @Override
-    public void createSettings() {
-
-    }
-
-    @Override
-    public SettingsDto getUserSettings(Long userId) {
-        Optional<Settings> settings = settingsRepository.findById(userId);
-        if(settings.isPresent()){
-            return settingsMapper.toSettingsDto(settings.get());
-        }else{
-            //createSettings
-            return null;
-        }
-    }
-
-    @Override
-    public BotSettingsDto getBotSettings(Long userId) {
-        Optional<Settings> settings = settingsRepository.findById(userId);
-        if(settings.isPresent()){
-            return settingsMapper.toBotSettingsDto(settings.get());
-        }
+    public SettingsDto getSettingsDto(Long userId, String typeName) {
         return null;
     }
 
+    @Override
+    public BotSettingsDto getBotSettingsDto(Long userId) {
+        return settingsMapper.toBotSettingsDto(settingsRepository.getActiveSettings(userId));
+    }
 
     @Override
-    public void setTypeSettings(Long userId, String typeName) {
-        settingsRepository.updateSettingsType(userId, typeName);
+    public Settings getTypeSettings(Long userId, TypeName typeName) {
+        return settingsRepository.getSettings(userId, typeName);
+    }
+
+    @Override
+    public void updateTypeAmount(Long userId, String typeName, Integer newAmount) {
+
+    }
+
+    @Override
+    public void updateTypeType(Long userId, String typeName, String newTypeType) {
+
+    }
+
+
+    @Override
+    public void createTypesSettings(Long userId) {
+        if(!settingsRepository.existsByTgUserId(userId)){
+            Settings settingsStandard = Settings.builder()
+                    .typeName(TypeName.STANDARD)
+                    .typeType(TypeType.STRAIGHT)
+                    .active(true)
+                    .tgUserId(userId)
+                    .amount(10)
+                    .build();
+            settingsRepository.save(settingsStandard);
+            Settings settingsStartWith = Settings.builder()
+                    .typeName(TypeName.START_WITH)
+                    .tgUserId(userId)
+                    .amount(10)
+                    .active(false)
+                    .build();
+            settingsRepository.save(settingsStartWith);
+            Settings settingsPack = Settings.builder()
+                    .typeName(TypeName.PACK)
+                    .tgUserId(userId)
+                    .active(false)
+                    .build();
+            settingsRepository.save(settingsPack);
+        }
     }
 }

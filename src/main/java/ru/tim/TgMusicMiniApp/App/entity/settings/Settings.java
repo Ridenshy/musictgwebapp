@@ -2,7 +2,8 @@ package ru.tim.TgMusicMiniApp.App.entity.settings;
 
 import jakarta.persistence.*;
 import lombok.*;
-import ru.tim.TgMusicMiniApp.App.entity.enums.SettingsType;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,16 +17,18 @@ public class Settings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String tgUserId;
+    @Column(nullable = false)
+    private Long tgUserId;
 
-    @OneToOne(
-            cascade = CascadeType.ALL,
-            optional = false
-    )
-    @JoinColumn(name = "type_settings_id",
-            referencedColumnName = "id",
-            unique = true)
-    private TypeSettings typeSettings;
+    private Integer amount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TypeName typeName;
+
+    @Enumerated(EnumType.STRING)
+    private TypeType typeType;
+
+    private Boolean active;
 
 }

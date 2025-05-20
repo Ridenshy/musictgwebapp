@@ -10,4 +10,6 @@ public interface TypeSettingsRepository extends JpaRepository<TypeSettings, Long
     @Query("SELECT ts FROM TypeSettings ts WHERE ts.tgUserId = :userId AND ts.typeName = :settingsType")
     TypeSettings getTypeSettingsForSettings(Long userId, SettingsType settingsType);
 
+    boolean existsByTgUserId(Long userId);
+
 }

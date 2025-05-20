@@ -13,7 +13,12 @@ public interface SettingsRepository extends JpaRepository<Settings, Long> {
             "WHERE s.tgUserId = :userId")
     void updateSettingsType(Long userId, String typeName);
 
-    Settings getUserSettings();
+
+    @Query("SELECT settings FROM Settings settings WHERE settings.tgUserId = :userId")
+    Settings getSettingsEntity(Long userId);
+
+
+    boolean existsByTgUserId(Long userId);
 
 
 }

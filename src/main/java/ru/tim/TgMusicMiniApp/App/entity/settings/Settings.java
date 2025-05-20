@@ -17,7 +17,7 @@ public class Settings {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String tgUserId;
+    private Long tgUserId;
 
     @OneToOne(
             cascade = CascadeType.ALL,

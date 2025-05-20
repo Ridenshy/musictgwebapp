@@ -2,18 +2,19 @@ package ru.tim.TgMusicMiniApp.App.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import ru.tim.TgMusicMiniApp.App.dto.SettingsDto;
-import ru.tim.TgMusicMiniApp.App.dto.mapper.BotSettingsDto;
+import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
 
 public interface SettingsService {
 
     @Transactional
-    void createSettings();
+    void createSettings(Long userId);
 
     @Transactional(readOnly = true)
-    SettingsDto getUserSettings(Long userId);
+    SettingsDto getSettingsDto(Long userId);
 
     @Transactional(readOnly = true)
-    BotSettingsDto getBotSettings(Long userId);
+    Settings getSettingsEntity(Long userId);
+
 
     @Transactional
     void setTypeSettings(Long userId, String typeName);

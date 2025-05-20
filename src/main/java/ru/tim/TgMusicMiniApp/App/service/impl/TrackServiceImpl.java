@@ -33,6 +33,12 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
+    public List<Track> getAllUserTracksEntity(Long userId) {
+        return trackRepository.getAllTracks(userId);
+    }
+
+
+    @Override
     public List<TrackDto> deleteTrack(Long trackId, Long userId) {
         Track trackToDelete = trackRepository.findByIdAndTgUserId(trackId, userId);
         int deletePos = trackToDelete.getListPlace();
@@ -79,6 +85,7 @@ public class TrackServiceImpl implements TrackService {
     public Integer getTracksAmount(Long userId) {
         return trackRepository.getLastListIndex(userId);
     }
+
 
     //метод чтобы замапить все треки в один лист Dto для фронта
     public TrackDto mapTrack(Track track){

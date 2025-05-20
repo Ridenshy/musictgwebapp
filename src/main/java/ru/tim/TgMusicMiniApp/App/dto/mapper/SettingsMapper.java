@@ -12,8 +12,4 @@ public interface SettingsMapper {
 
     SettingsDto toSettingsDto(Settings settings);
 
-    @Mapping(target = "amount", source = "typeSettings.amount")
-    @Mapping(target = "typeName", source = "typeSettings.typeName")
-    BotSettingsDto toBotSettingsDto(Settings settings);
-
 }

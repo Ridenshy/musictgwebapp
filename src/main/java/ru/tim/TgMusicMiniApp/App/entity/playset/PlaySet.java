@@ -6,7 +6,9 @@ import lombok.*;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 
 import java.nio.channels.InterruptedByTimeoutException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -33,6 +35,6 @@ public class PlaySet {
             inverseJoinColumns = @JoinColumn(name = "track_id")
     )
 
-    private Set<Track> tracks = new HashSet<>();
+    private List<Track> tracks;
 
 }

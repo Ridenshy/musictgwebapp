@@ -20,7 +20,6 @@ public class TypeSettings {
     @Column(nullable = false)
     private Long tgUserId;
 
-    @Column(nullable = false)
     private Integer amount;
 
     @Enumerated(EnumType.STRING)
@@ -28,7 +27,6 @@ public class TypeSettings {
     private SettingsType typeName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private TypeType typeType;
 
 }

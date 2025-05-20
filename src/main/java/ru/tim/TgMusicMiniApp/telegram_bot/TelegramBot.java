@@ -29,19 +29,25 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(update.hasMessage() && update.getMessage().hasAudio()){
-            Audio track = update.getMessage().getAudio();
-            Long userId = update.getMessage().getFrom().getId();
-            TgUserTrack trackEntity = TgUserTrack
-                    .builder()
-                    .audioTgId(track.getFileId())
-                    .title(track.getTitle())
-                    .artist(track.getPerformer())
-                    .duration(track.getDuration())
-                    .tgUserId(userId)
-                    .listPlace(trackService.getTracksAmount(userId))
-                    .build();
-            trackService.saveTgUserTrack(trackEntity);
+        if(update.hasMessage()){
+            if("/start".equals(update.getMessage().getText())){
+
+            }
+            else if(update.getMessage().hasAudio()){
+                Audio track = update.getMessage().getAudio();
+                Long userId = update.getMessage().getFrom().getId();
+                TgUserTrack trackEntity = TgUserTrack
+                        .builder()
+                        .audioTgId(track.getFileId())
+                        .title(track.getTitle())
+                        .artist(track.getPerformer())
+                        .duration(track.getDuration())
+                        .tgUserId(userId)
+                        .listPlace(trackService.getTracksAmount(userId))
+                        .build();
+                trackService.saveTgUserTrack(trackEntity);
+            }
+
         }
     }
 

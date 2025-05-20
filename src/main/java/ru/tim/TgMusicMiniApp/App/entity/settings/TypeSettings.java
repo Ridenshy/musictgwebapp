@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.App.entity.settings;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.tim.TgMusicMiniApp.App.entity.enums.SettingsType;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 
 @NoArgsConstructor
@@ -22,7 +23,12 @@ public class TypeSettings {
     @Column(nullable = false)
     private Integer amount;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SettingsType typeName;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TypeType typeType;
+
 }

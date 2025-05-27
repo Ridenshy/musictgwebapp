@@ -1,5 +1,6 @@
 package ru.tim.TgMusicMiniApp.telegram_bot.configuraction;
 
+
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;

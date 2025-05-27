@@ -1,5 +1,6 @@
 package ru.tim.TgMusicMiniApp.telegram_bot.scheduler;
 
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;

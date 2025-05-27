@@ -23,10 +23,4 @@ public class PlaySetController {
         return "Play set generated";
     }
 
-    @PostMapping("/nextPage")
-    public String nextPage(@RequestParam Long userId){
-        bot.sendPlaySetTracks(userId);
-        return "test";
-    }
-
 }

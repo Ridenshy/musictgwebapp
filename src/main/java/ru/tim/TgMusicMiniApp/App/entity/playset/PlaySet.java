@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 
-import java.util.List;
+import java.nio.channels.InterruptedByTimeoutException;
+import java.util.HashSet;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,16 +26,13 @@ public class PlaySet {
     @Column(nullable = false)
     private Integer alreadyPlayed;
 
-    @ManyToMany(
-            cascade = { CascadeType.PERSIST, CascadeType.MERGE },
-            fetch = FetchType.EAGER
-    )
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "play_set_tracks",
             joinColumns = @JoinColumn(name = "play_set_id"),
             inverseJoinColumns = @JoinColumn(name = "track_id")
     )
 
-    private List<Track> tracks;
+    private Set<Track> tracks = new HashSet<>();
 
 }

@@ -20,7 +20,7 @@ public class PlaySetController {
     @PostMapping("/generateStraight")
     public String generateStandardPlaySet(@RequestParam Long userId){
         playSetService.generateStandardPlaySet(userId);
-        bot.sendPlaySetTracks(userId);
+        bot.sendPlaySetTracks(userId, "");
         return "Play set generated";
     }
 

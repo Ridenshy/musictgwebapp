@@ -64,8 +64,8 @@ public class PlaySetServiceImpl implements PlaySetService {
     }
 
     @Override
-    public void updateAlreadyPlayed(Long userId, Integer newAmount) {
-        playSetRepository.updateAlreadyPlayedAmount(userId, newAmount);
+    public void updateAlreadyPlayed(Long userId, Integer newAmount, Integer newLastAmount) {
+        playSetRepository.updateAlreadyPlayedAmount(userId, newAmount, newLastAmount);
     }
 
     @Override
@@ -78,6 +78,7 @@ public class PlaySetServiceImpl implements PlaySetService {
         if(!isPlaySetExists(userId)){
             PlaySet playSet = PlaySet.builder()
                     .alreadyPlayed(0)
+                    .lastDropAmount(0)
                     .tgUserId(userId)
                     .build();
             playSetRepository.save(playSet);

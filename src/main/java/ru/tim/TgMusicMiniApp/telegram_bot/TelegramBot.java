@@ -1,6 +1,5 @@
 package ru.tim.TgMusicMiniApp.telegram_bot;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -12,8 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.tim.TgMusicMiniApp.App.dto.BotSettingsDto;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
@@ -26,8 +23,8 @@ import ru.tim.TgMusicMiniApp.App.service.SettingsService;
 import ru.tim.TgMusicMiniApp.telegram_bot.configuraction.BotProperty;
 import ru.tim.TgMusicMiniApp.telegram_bot.entity.BotMessage;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
+import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -78,7 +75,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
         else if(update.hasCallbackQuery()){
             Long userId = update.getCallbackQuery().getFrom().getId();
-            sendPlaySetTracks(userId);
+            sendPlaySetTracks(userId, update.getCallbackQuery().getData());
         }
     }
 
@@ -87,31 +84,62 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botProperty.name();
     }
 
-    public void sendPlaySetTracks(Long userId){
+    public void sendPlaySetTracks(Long userId, String callbackData){
         cleanupChat(userId);
         BotSettingsDto botSettingsDto = settingsService.getBotSettingsDto(userId);
         Integer amountToDrop = botSettingsDto.getAmount();
+
         TypeName typeName = botSettingsDto.getTypeName();
         PlaySet playSet = playSetService.getPlaySet(userId);
+        Integer alreadyPlayed = playSet.getAlreadyPlayed();
+        Integer lastDropAmount = playSet.getLastDropAmount();
         List<Track> trackList = playSet.getTracks();
-        List<Track> tracksToSend = trackList.stream()
-                .skip(playSet.getAlreadyPlayed())
-                .limit(amountToDrop)
-                .toList();
-
-        if(playSet.getAlreadyPlayed() + amountToDrop >= trackList.size()){
-            playSetService.updateAlreadyPlayed(userId, 0);
+        List<Track> tracksToSend;
+        int toSendSize;
+        if(!callbackData.equals("back_")){
+            if(playSet.getAlreadyPlayed() < trackList.size()){
+                tracksToSend = trackList.stream()
+                        .skip(alreadyPlayed)
+                        .limit(amountToDrop)
+                        .toList();
+                toSendSize = tracksToSend.size();
+                playSetService.updateAlreadyPlayed(userId, alreadyPlayed+toSendSize, toSendSize);
+            }else {
+                tracksToSend = trackList.stream()
+                        .limit(amountToDrop)
+                        .toList();
+                toSendSize = tracksToSend.size();
+                playSetService.updateAlreadyPlayed(userId, toSendSize, toSendSize);
+            }
         }else {
-            playSetService.updateAlreadyPlayed(userId, playSet.getAlreadyPlayed() + amountToDrop);
+            int skipPosition = alreadyPlayed - amountToDrop - lastDropAmount;
+            if(skipPosition >= 0){
+            tracksToSend = trackList.stream()
+                    .skip(skipPosition)
+                    .limit(amountToDrop)
+                    .toList();
+            toSendSize = tracksToSend.size();
+            playSetService.updateAlreadyPlayed(userId, skipPosition + toSendSize, toSendSize);
+            }
+            else {
+                int dropsCount = (trackList.size()/amountToDrop);
+                skipPosition = dropsCount * amountToDrop;
+                tracksToSend = trackList.stream()
+                        .skip(skipPosition)
+                        .limit(amountToDrop)
+                        .toList();
+                toSendSize = tracksToSend.size();
+                playSetService.updateAlreadyPlayed(userId, skipPosition+toSendSize, toSendSize);
+            }
         }
-        for (int i = 0; i < tracksToSend.size(); ++i) {
-            Track track = tracksToSend.get(i);
+
+        for (Track track : tracksToSend) {
             if (track instanceof TgUserTrack tgTrack) {
                 sendAudio(userId, tgTrack.getAudioTgId());
             }
         }
         if(!typeName.equals(TypeName.PACK)){
-            sendNextButton(userId);
+            sendMoveKeyboard(userId);
         }
     }
 
@@ -133,26 +161,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-        public void sendNextButton(Long userId){
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
-        InlineKeyboardButton nextButton = new InlineKeyboardButton();
-
-        nextButton.setText("Далее ▶️");
-
-        String callbackData = "next_" + userId;
-        nextButton.setCallbackData(callbackData);
-
-        List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
-        keyboardButtonsRow.add(nextButton);
-
-        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow);
-        inlineKeyboard.setKeyboard(rowList);
-
+        public void sendMoveKeyboard(Long userId){
         SendMessage message = new SendMessage();
         message.setChatId(userId.toString());
-        message.setText("Нажмите кнопку чтобы продолжить прослушивание:");
-        message.setReplyMarkup(inlineKeyboard);
+        message.setText("Нажмите Назад/Далее");
+        message.setReplyMarkup(KeyBoardUtils.moveButton());
 
         try {
             Message msg = execute(message);

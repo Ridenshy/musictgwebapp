@@ -16,7 +16,7 @@ public interface PlaySetService {
     void generatePackPlaySet(Long userId);
 
     @Transactional
-    void updateAlreadyPlayed(Long userId, Integer newAmount);
+    void updateAlreadyPlayed(Long userId, Integer newAmount, Integer newLastAmount);
 
     @Transactional(readOnly = true)
     PlaySet getPlaySet(Long userId);

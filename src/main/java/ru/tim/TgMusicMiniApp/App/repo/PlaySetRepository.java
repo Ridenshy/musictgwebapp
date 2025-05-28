@@ -15,8 +15,8 @@ public interface PlaySetRepository extends JpaRepository<PlaySet, Long> {
     void updatePlaySetTracks(List<Track> tracks, Long userId);
 
     @Modifying
-    @Query("UPDATE PlaySet ps SET ps.alreadyPlayed = :newAmount WHERE ps.tgUserId = :userId")
-    void updateAlreadyPlayedAmount(Long userId, Integer newAmount);
+    @Query("UPDATE PlaySet ps SET ps.alreadyPlayed = :newAmount, ps.lastDropAmount = :newLastAmount WHERE ps.tgUserId = :userId")
+    void updateAlreadyPlayedAmount(Long userId, Integer newAmount, Integer newLastAmount);
 
     @Query("SELECT ps FROM PlaySet ps WHERE ps.tgUserId = :userId")
     PlaySet getPlaySet(Long userId);

@@ -27,6 +27,9 @@ public class PlaySet {
     @Column(nullable = false)
     private Integer alreadyPlayed;
 
+    @Column(nullable = false)
+    private Integer lastDropAmount;
+
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
     @JoinTable(
             name = "play_set_tracks",

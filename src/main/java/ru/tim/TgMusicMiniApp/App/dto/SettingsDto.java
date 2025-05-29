@@ -7,14 +7,9 @@ import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 
 @Value
 public class SettingsDto {
-
     Long tgUserId;
-
     Integer amount;
-
     TypeName typeName;
-
     TypeType typeType;
-
     Boolean active;
 }

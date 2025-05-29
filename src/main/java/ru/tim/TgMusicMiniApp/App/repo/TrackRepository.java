@@ -9,13 +9,25 @@ import java.util.List;
 
 public interface TrackRepository extends JpaRepository<Track, Long> {
 
-    @Query("SELECT track FROM Track track WHERE track.tgUserId = :userId ORDER BY track.listPlace ASC")
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId ORDER BY t.listPlace ASC")
     List<Track> getAllTracks(Long userId);
 
-    @Query("SELECT track FROM Track track WHERE track.tgUserId = :userId ORDER BY track.listPlace DESC")
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId ORDER BY t.listPlace DESC")
     List<Track> getAllTracksDesc(Long userId);
 
-    @Query("SELECT (COUNT(track)) FROM Track track WHERE track.tgUserId = :userId")
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId AND t.listPlace >= :listPlace ORDER BY t.listPlace ASC")
+    List<Track> getAllTracksAfter(Long userId, Integer listPlace);
+
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId AND t.listPlace >= :listPlace ORDER BY t.listPlace DESC")
+    List<Track> getAllTracksAfterDesc(Long userId, Integer listPlace);
+
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId and t.listPlace IN :trackPlaceList ORDER BY t.listPlace ASC")
+    List<Track> getAllListPlace(Long userId, List<Integer> trackPlaceList);
+
+    @Query("SELECT t FROM Track t WHERE t.tgUserId = :userId and t.listPlace IN :trackPlaceList ORDER BY t.listPlace DESC")
+    List<Track> getAllListPlaceDesc(Long userId, List<Integer> trackPlaceList);
+
+    @Query("SELECT (COUNT(t)) FROM Track t WHERE t.tgUserId = :userId")
     Integer getLastListIndex(Long userId);
 
     Track findByIdAndTgUserId(Long id, Long userId);

@@ -58,6 +58,7 @@ public class SettingsServiceImpl implements SettingsService {
             settingsRepository.save(settingsStandard);
             Settings settingsStartWith = Settings.builder()
                     .typeName(TypeName.START_WITH)
+                    .typeType(TypeType.STRAIGHT)
                     .tgUserId(userId)
                     .amount(10)
                     .active(false)
@@ -65,7 +66,9 @@ public class SettingsServiceImpl implements SettingsService {
             settingsRepository.save(settingsStartWith);
             Settings settingsPack = Settings.builder()
                     .typeName(TypeName.PACK)
+                    .typeType(TypeType.STRAIGHT)
                     .tgUserId(userId)
+                    .amount(10)
                     .active(false)
                     .build();
             settingsRepository.save(settingsPack);

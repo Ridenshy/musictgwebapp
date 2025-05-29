@@ -29,38 +29,52 @@ public class PlaySetServiceImpl implements PlaySetService {
         dropTracksFromPlaySet(userId);
         Settings settings = settingsRepository
                 .getSettings(userId, TypeName.STANDARD);
-        List<Track> trackList;
+        List<Track> trackList = switch (settings.getTypeType()) {
+            case STRAIGHT -> trackRepository.getAllTracks(userId);
+            case BACK -> trackRepository.getAllTracksDesc(userId);
+            case RANDOM -> shuffleTracks(trackRepository.getAllTracks(userId));
+        };
 
-        switch (settings.getTypeType()) {
-            case STRAIGHT:
-                trackList = trackRepository.getAllTracks(userId);
-                break;
-
-            case BACK:
-                trackList = trackRepository.getAllTracksDesc(userId);
-                break;
-
-            case RANDOM:
-                trackList = shuffleTracks(trackRepository.getAllTracks(userId));
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unknown type");
-        }
         PlaySet playSet = playSetRepository.getPlaySet(userId);
         playSet.setTracks(trackList);
         playSet.setAlreadyPlayed(0);
+        playSet.setLastDropAmount(0);
         playSetRepository.save(playSet);
     }
 
     @Override
-    public void generateStartWithPlaySet(Long userId) {
+    public void generateStartWithPlaySet(Long userId, Integer startPosition) {
+        dropTracksFromPlaySet(userId);
+        Settings settings = settingsRepository
+                .getSettings(userId, TypeName.START_WITH);
+        List<Track> trackList = switch (settings.getTypeType()){
+            case STRAIGHT -> trackRepository.getAllTracksAfter(userId, startPosition);
+            case BACK -> trackRepository.getAllTracksAfterDesc(userId, startPosition);
+            case RANDOM -> shuffleTracks(trackRepository.getAllTracksAfter(userId, startPosition));
+        };
+        PlaySet playSet = playSetRepository.getPlaySet(userId);
+        playSet.setTracks(trackList);
+        playSet.setAlreadyPlayed(0);
+        playSet.setLastDropAmount(0);
+        playSetRepository.save(playSet);
 
     }
 
     @Override
-    public void generatePackPlaySet(Long userId) {
-
+    public void generatePackPlaySet(Long userId, List<Integer> trackPositionList) {
+        dropTracksFromPlaySet(userId);
+        Settings settings = settingsRepository
+                .getSettings(userId, TypeName.PACK);
+        List<Track> trackList = switch (settings.getTypeType()){
+            case STRAIGHT -> trackRepository.getAllListPlace(userId, trackPositionList);
+            case BACK -> trackRepository.getAllListPlaceDesc(userId, trackPositionList);
+            case RANDOM -> shuffleTracks(trackRepository.getAllListPlace(userId, trackPositionList));
+        };
+        PlaySet playSet = playSetRepository.getPlaySet(userId);
+        playSet.setTracks(trackList);
+        playSet.setAlreadyPlayed(0);
+        playSet.setLastDropAmount(0);
+        playSetRepository.save(playSet);
     }
 
     @Override

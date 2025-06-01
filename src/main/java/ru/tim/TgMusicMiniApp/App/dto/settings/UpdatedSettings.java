@@ -1,15 +1,16 @@
-package ru.tim.TgMusicMiniApp.App.dto;
-
+package ru.tim.TgMusicMiniApp.App.dto.settings;
 
 import lombok.Value;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 
+/**
+ * DTO for {@link ru.tim.TgMusicMiniApp.App.entity.settings.Settings}
+ */
 @Value
-public class SettingsDto {
+public class UpdatedSettings {
     Long tgUserId;
-    Integer amount;
     TypeName typeName;
     TypeType typeType;
-    Boolean active;
+    Integer amount;
 }

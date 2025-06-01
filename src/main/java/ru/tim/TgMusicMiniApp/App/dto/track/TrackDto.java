@@ -1,4 +1,4 @@
-package ru.tim.TgMusicMiniApp.App.dto;
+package ru.tim.TgMusicMiniApp.App.dto.track;
 
 
 import lombok.Value;

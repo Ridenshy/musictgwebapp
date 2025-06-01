@@ -2,7 +2,7 @@ package ru.tim.TgMusicMiniApp.App.service;
 
 
 import org.springframework.transaction.annotation.Transactional;
-import ru.tim.TgMusicMiniApp.App.dto.TrackDto;
+import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 

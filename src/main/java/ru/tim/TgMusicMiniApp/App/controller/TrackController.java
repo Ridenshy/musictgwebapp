@@ -3,7 +3,7 @@ package ru.tim.TgMusicMiniApp.App.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.tim.TgMusicMiniApp.App.dto.TrackDto;
+import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.service.TrackService;
 
 import java.util.List;

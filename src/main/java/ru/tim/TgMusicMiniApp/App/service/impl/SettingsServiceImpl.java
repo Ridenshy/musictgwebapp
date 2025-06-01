@@ -3,14 +3,18 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.tim.TgMusicMiniApp.App.dto.BotSettingsDto;
-import ru.tim.TgMusicMiniApp.App.dto.SettingsDto;
+import ru.tim.TgMusicMiniApp.App.dto.settings.BotSettingsDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.SettingsMapper;
+import ru.tim.TgMusicMiniApp.App.dto.settings.SettingsDto;
+import ru.tim.TgMusicMiniApp.App.dto.settings.UpdatedSettings;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
 import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
 import ru.tim.TgMusicMiniApp.App.service.SettingsService;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +24,33 @@ public class SettingsServiceImpl implements SettingsService {
     private final SettingsMapper settingsMapper;
 
     @Override
-    public SettingsDto getSettingsDto(Long userId, String typeName) {
-        return null;
+    public List<SettingsDto> getAllUserSettings(Long userId) {
+        return settingsRepository.getAllUserSettings(userId)
+                .stream().map(settingsMapper::toSettingsDto).toList();
+    }
+
+
+
+    @Override
+    public SettingsDto getSettingsDto(Long userId, TypeName typeName) {
+        return settingsMapper.toSettingsDto(
+                settingsRepository.getSettings(userId, typeName)
+        );
+    }
+
+    @Override
+    public SettingsDto setActiveSettings(SettingsDto settingsDto) {
+        settingsRepository.setActiveSettings(settingsDto.getTgUserId(), settingsDto.getTypeName());
+        return settingsMapper.toSettingsDto(
+                settingsRepository.getActiveSettings(settingsDto.getTgUserId())
+        );
     }
 
     @Override
     public BotSettingsDto getBotSettingsDto(Long userId) {
-        return settingsMapper.toBotSettingsDto(settingsRepository.getActiveSettings(userId));
+        return settingsMapper.toBotSettingsDto(
+                settingsRepository.getActiveSettings(userId)
+        );
     }
 
     @Override
@@ -35,15 +59,15 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
-    public void updateTypeAmount(Long userId, String typeName, Integer newAmount) {
-
+    public SettingsDto updateSettings(UpdatedSettings settings) {
+        settingsRepository.updateSettings(settings.getTgUserId(),
+                settings.getTypeName(),
+                settings.getTypeType(),
+                settings.getAmount());
+        return settingsMapper.toSettingsDto(
+                settingsRepository.getSettings(settings.getTgUserId(), settings.getTypeName())
+        );
     }
-
-    @Override
-    public void updateTypeType(Long userId, String typeName, String newTypeType) {
-
-    }
-
 
     @Override
     public void createTypesSettings(Long userId) {

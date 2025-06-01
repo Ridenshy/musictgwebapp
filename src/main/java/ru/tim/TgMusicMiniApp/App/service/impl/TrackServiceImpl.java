@@ -3,7 +3,7 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.tim.TgMusicMiniApp.App.dto.TrackDto;
+import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;

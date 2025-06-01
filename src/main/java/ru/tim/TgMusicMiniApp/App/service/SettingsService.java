@@ -2,15 +2,24 @@ package ru.tim.TgMusicMiniApp.App.service;
 
 
 import org.springframework.transaction.annotation.Transactional;
-import ru.tim.TgMusicMiniApp.App.dto.BotSettingsDto;
-import ru.tim.TgMusicMiniApp.App.dto.SettingsDto;
+import ru.tim.TgMusicMiniApp.App.dto.settings.BotSettingsDto;
+import ru.tim.TgMusicMiniApp.App.dto.settings.SettingsDto;
+import ru.tim.TgMusicMiniApp.App.dto.settings.UpdatedSettings;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
+
+import java.util.List;
 
 public interface SettingsService {
 
     @Transactional(readOnly = true)
-    SettingsDto getSettingsDto(Long userId, String typeName);
+    List<SettingsDto> getAllUserSettings(Long userId);
+
+    @Transactional(readOnly = true)
+    SettingsDto getSettingsDto(Long userId, TypeName typeName);
+
+    @Transactional
+    SettingsDto setActiveSettings(SettingsDto settingsDto);
 
     @Transactional(readOnly = true)
     BotSettingsDto getBotSettingsDto(Long userId);
@@ -19,10 +28,7 @@ public interface SettingsService {
     Settings getTypeSettings(Long userId, TypeName typeName);
 
     @Transactional
-    void updateTypeAmount(Long userId, String typeName, Integer newAmount);
-
-    @Transactional
-    void updateTypeType(Long userId, String typeName, String newTypeType);
+    SettingsDto updateSettings(UpdatedSettings settings);
 
     @Transactional
     void createTypesSettings(Long userId);

@@ -14,7 +14,6 @@ import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
 import ru.tim.TgMusicMiniApp.App.service.SettingsService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

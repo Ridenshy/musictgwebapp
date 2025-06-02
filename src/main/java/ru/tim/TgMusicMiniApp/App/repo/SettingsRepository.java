@@ -3,7 +3,6 @@ package ru.tim.TgMusicMiniApp.App.repo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;

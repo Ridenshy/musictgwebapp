@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 
-import java.nio.channels.InterruptedByTimeoutException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +27,10 @@ public class PlaySet {
     @Column(nullable = false)
     private Integer lastDropAmount;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
+    @ManyToMany(
+            cascade = { CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY
+    )
     @JoinTable(
             name = "play_set_tracks",
             joinColumns = @JoinColumn(name = "play_set_id"),

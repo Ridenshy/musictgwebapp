@@ -4,18 +4,17 @@ package ru.tim.TgMusicMiniApp.telegram_bot.scheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.tim.TgMusicMiniApp.telegram_bot.TelegramBot;
 import ru.tim.TgMusicMiniApp.telegram_bot.entity.BotMessage;
 import ru.tim.TgMusicMiniApp.telegram_bot.repo.UserInfoRepository;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
+import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
+import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +26,7 @@ public class BotMessageScheduler {
     private final BotMessageService botMessageService;
     private final UserInfoRepository userInfoRepository;
     private final TelegramBot bot;
+    private final CallBackHandler callBackHandler;
 
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateAllUserMessages(){
@@ -69,30 +69,16 @@ public class BotMessageScheduler {
                 }
             }
         }
-        bot.cleanupChat(userId);
+        callBackHandler.cleanupChat(userId);
         updatedList.forEach(botMessageService::saveBotMessage);
     }
 
     public Message sendNextButton(Long userId){
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
-        InlineKeyboardButton nextButton = new InlineKeyboardButton();
-
-        nextButton.setText("Далее ▶️");
-
-        String callbackData = "next_" + userId;
-        nextButton.setCallbackData(callbackData);
-
-        List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
-        keyboardButtonsRow.add(nextButton);
-
-        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow);
-        inlineKeyboard.setKeyboard(rowList);
 
         SendMessage message = new SendMessage();
         message.setChatId(userId.toString());
         message.setText("Нажмите кнопку чтобы продолжить прослушивание:");
-        message.setReplyMarkup(inlineKeyboard);
+        message.setReplyMarkup(KeyBoardUtils.moveButton());
 
         try {
             return bot.execute(message);

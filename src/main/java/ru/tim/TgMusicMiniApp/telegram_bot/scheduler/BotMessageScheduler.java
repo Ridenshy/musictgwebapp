@@ -28,7 +28,7 @@ public class BotMessageScheduler {
     private final TelegramBot bot;
     private final CallBackHandler callBackHandler;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(fixedRate = 10000)
     public void updateAllUserMessages(){
         List<Long> userIds = userInfoRepository.getAllUniqueUsers();
         for(Long id : userIds){
@@ -38,42 +38,44 @@ public class BotMessageScheduler {
 
     @Async
     public void updateAllUsersMessages(Long userId){
-        List<BotMessage> messageList = botMessageService.getAllChatMessages(userId);
-        List<BotMessage> updatedList = new ArrayList<>();
-        for(BotMessage message : messageList){
-            if(message.getHasNextReply().equals(true)){
-                Message msg = sendNextButton(userId);
-                BotMessage updatedMessage = BotMessage.builder()
-                        .messageId(msg.getMessageId())
-                        .chatId(msg.getChatId())
-                        .hasNextReply(true)
-                        .build();
-                updatedList.add(updatedMessage);
-            }else {
-                ForwardMessage forwardMessage = new ForwardMessage();
-                forwardMessage.setChatId(userId);
-                forwardMessage.setFromChatId(userId);
-                forwardMessage.setFromChatId(userId);
-                forwardMessage.setMessageId(message.getMessageId());
-                forwardMessage.setDisableNotification(true);
-                try {
-                    Message msg = bot.execute(forwardMessage);
+        List<BotMessage> messageList = botMessageService.getExpiredSoonMessages(userId);
+        if(!messageList.isEmpty()){
+            List<BotMessage> updatedList = new ArrayList<>();
+            for(BotMessage message : messageList){
+                if(message.getHasNextReply().equals(true)){
+                    Message msg = sendMoveButton(userId);
                     BotMessage updatedMessage = BotMessage.builder()
                             .messageId(msg.getMessageId())
                             .chatId(msg.getChatId())
-                            .hasNextReply(false)
+                            .hasNextReply(true)
                             .build();
                     updatedList.add(updatedMessage);
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
+                }else {
+                    ForwardMessage forwardMessage = new ForwardMessage();
+                    forwardMessage.setChatId(userId);
+                    forwardMessage.setFromChatId(userId);
+                    forwardMessage.setFromChatId(userId);
+                    forwardMessage.setMessageId(message.getMessageId());
+                    forwardMessage.setDisableNotification(true);
+                    try {
+                        Message msg = bot.execute(forwardMessage);
+                        BotMessage updatedMessage = BotMessage.builder()
+                                .messageId(msg.getMessageId())
+                                .chatId(msg.getChatId())
+                                .hasNextReply(false)
+                                .build();
+                        updatedList.add(updatedMessage);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
+            callBackHandler.cleanupChat(userId);
+            updatedList.forEach(botMessageService::saveBotMessage);
         }
-        callBackHandler.cleanupChat(userId);
-        updatedList.forEach(botMessageService::saveBotMessage);
     }
 
-    public Message sendNextButton(Long userId){
+    public Message sendMoveButton(Long userId){
 
         SendMessage message = new SendMessage();
         message.setChatId(userId.toString());

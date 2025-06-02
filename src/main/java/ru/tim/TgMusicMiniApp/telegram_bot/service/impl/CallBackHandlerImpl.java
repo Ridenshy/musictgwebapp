@@ -5,7 +5,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessages;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -22,7 +23,9 @@ import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
 import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -39,8 +42,6 @@ public class CallBackHandlerImpl implements CallBackHandler {
         cleanupChat(userId);
         BotSettingsDto botSettingsDto = settingsService.getBotSettingsDto(userId);
         Integer amountToDrop = botSettingsDto.getAmount();
-
-        TypeName typeName = botSettingsDto.getTypeName();
         PlaySet playSet = playSetService.getPlaySet(userId);
         Integer alreadyPlayed = playSet.getAlreadyPlayed();
         Integer lastDropAmount = playSet.getLastDropAmount();
@@ -84,29 +85,31 @@ public class CallBackHandlerImpl implements CallBackHandler {
             }
         }
 
+        LocalDateTime now = LocalDateTime.now();
         for (Track track : tracksToSend) {
             if (track instanceof TgUserTrack tgTrack) {
-                sendAudio(userId, tgTrack.getAudioTgId());
+                sendAudio(userId, tgTrack.getAudioTgId(), now);
             }
         }
-        if(!typeName.equals(TypeName.PACK)){
-            sendMoveKeyboard(userId);
-        }
+
+        sendMoveKeyboard(userId, now);
     }
 
     @Async
     @Override
-    public void sendAudio(Long userId, String fileId){
+    public void sendAudio(Long userId, String fileId, LocalDateTime now){
         SendAudio sendAudio = new SendAudio();
         sendAudio.setChatId(userId);
         sendAudio.setAudio(new InputFile(fileId));
-
+        sendAudio.setDisableNotification(true);
+        
         try {
             Message message = bot.execute(sendAudio);
             BotMessage botMessage = BotMessage.builder()
                     .messageId(message.getMessageId())
                     .chatId(userId)
                     .hasNextReply(false)
+                    .dateTime(now)
                     .build();
             botMessageService.saveBotMessage(botMessage);
         } catch (TelegramApiException e) {
@@ -116,11 +119,12 @@ public class CallBackHandlerImpl implements CallBackHandler {
 
     @Async
     @Override
-    public void sendMoveKeyboard(Long userId){
+    public void sendMoveKeyboard(Long userId, LocalDateTime now){
         SendMessage message = new SendMessage();
         message.setChatId(userId.toString());
         message.setText("Нажмите Назад/Далее");
         message.setReplyMarkup(KeyBoardUtils.moveButton());
+        message.setDisableNotification(true);
 
         try {
             Message msg = bot.execute(message);
@@ -128,6 +132,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
                     .messageId(msg.getMessageId())
                     .chatId(userId)
                     .hasNextReply(true)
+                    .dateTime(now)
                     .build();
             botMessageService.saveBotMessage(botMessage);
         } catch (TelegramApiException e) {
@@ -138,15 +143,26 @@ public class CallBackHandlerImpl implements CallBackHandler {
     @Async
     @Override
     public void cleanupChat(Long userId) {
-        botMessageService.getAllChatMessages(userId)
-                .forEach(botMessage -> {
-                    try {
-                        bot.execute(new DeleteMessage(userId.toString(), botMessage.getMessageId()));
-                    } catch (TelegramApiException e) {
-                        throw new RuntimeException(e);
-                    }
-                    botMessageService.deleteMessage(botMessage);
-                });
+        List<BotMessage> botMessageList = botMessageService.getAllChatMessages(userId);
+        List<Integer> idList = botMessageList.stream()
+                .map(BotMessage::getMessageId).toList();
+        if(!idList.isEmpty()){
+            DeleteMessages deleteMessages = DeleteMessages.builder()
+                    .chatId(userId)
+                    .messageIds(idList)
+                    .build();
+            deleteMessages.setChatId(userId);
+            deleteMessages.setMessageIds(idList);
+            try {
+                bot.execute(deleteMessages);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        for(BotMessage botMessage : botMessageList){
+            botMessageService.deleteMessage(botMessage);
+        }
+
     }
 
 

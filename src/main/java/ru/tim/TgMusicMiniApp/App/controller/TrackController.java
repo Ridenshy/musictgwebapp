@@ -26,7 +26,9 @@ public class TrackController {
     }
 
     @PatchMapping("/changeListPlace")
-    public List<TrackDto> updateListPlace(@RequestParam Integer newPlace, @RequestParam Long trackId, @RequestParam Long userId){
+    public List<TrackDto> updateListPlace(@RequestParam Integer newPlace,
+                                          @RequestParam Long trackId,
+                                          @RequestParam Long userId){
         return trackService.updateListPlace(newPlace, trackId, userId);
     }
 

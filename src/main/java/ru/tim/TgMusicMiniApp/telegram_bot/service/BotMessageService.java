@@ -18,6 +18,9 @@ public interface BotMessageService {
     @Transactional
     void saveBotMessage(BotMessage botMessage);
 
+    @Transactional(readOnly = true)
+    List<BotMessage> getExpiredSoonMessages(Long userId);
+
 
 
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -36,6 +37,7 @@ public class PlaySet {
             joinColumns = @JoinColumn(name = "play_set_id"),
             inverseJoinColumns = @JoinColumn(name = "track_id")
     )
-    private List<Track> tracks;
+    @OrderColumn(name = "track_order")
+    private List<Track> tracks = new ArrayList<>();
 
 }

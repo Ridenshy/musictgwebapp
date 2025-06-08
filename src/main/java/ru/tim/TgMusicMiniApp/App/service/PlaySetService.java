@@ -12,10 +12,10 @@ public interface PlaySetService {
     void generateStandardPlaySet(Long userId);
 
     @Transactional
-    void generateStartWithPlaySet(Long userId, Integer startPosition);
+    void generateStartWithPlaySet(Long userId, Long trackId );
 
     @Transactional
-    void generatePackPlaySet(Long userId, List<Integer> trackPosList);
+    void generatePackPlaySet(Long userId, List<Long> trackIds);
 
     @Transactional
     void updateAlreadyPlayed(Long userId, Integer newAmount, Integer newLastAmount);

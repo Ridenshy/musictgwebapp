@@ -13,6 +13,9 @@ import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
 import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.BooleanUtils.forEach;
 
 
 @Service
@@ -35,22 +38,25 @@ public class PlaySetServiceImpl implements PlaySetService {
             case RANDOM -> shuffleTracks(trackRepository.getAllTracks(userId));
         };
 
+        List<Track> orderedTracks = new ArrayList<>(trackList);
+
         PlaySet playSet = playSetRepository.getPlaySet(userId);
-        playSet.setTracks(trackList);
+        playSet.setTracks(orderedTracks);
         playSet.setAlreadyPlayed(0);
         playSet.setLastDropAmount(0);
         playSetRepository.save(playSet);
     }
 
     @Override
-    public void generateStartWithPlaySet(Long userId, Integer startPosition) {
+    public void generateStartWithPlaySet(Long userId, Long trackId) {
         dropTracksFromPlaySet(userId);
         Settings settings = settingsRepository
                 .getSettings(userId, TypeName.START_WITH);
+        Integer listPlace = trackRepository.findByIdAndTgUserId(trackId, userId).getListPlace();
         List<Track> trackList = switch (settings.getTypeType()){
-            case STRAIGHT -> trackRepository.getAllTracksAfter(userId, startPosition);
-            case BACK -> trackRepository.getAllTracksAfterDesc(userId, startPosition);
-            case RANDOM -> shuffleTracks(trackRepository.getAllTracksAfter(userId, startPosition));
+            case STRAIGHT -> trackRepository.getAllTracksAfter(userId, listPlace);
+            case BACK -> trackRepository.getAllTracksAfterDesc(userId, listPlace);
+            case RANDOM -> shuffleTracks(trackRepository.getAllTracksAfter(userId, listPlace));
         };
         PlaySet playSet = playSetRepository.getPlaySet(userId);
         playSet.setTracks(trackList);
@@ -61,14 +67,18 @@ public class PlaySetServiceImpl implements PlaySetService {
     }
 
     @Override
-    public void generatePackPlaySet(Long userId, List<Integer> trackPositionList) {
+    public void generatePackPlaySet(Long userId, List<Long> trackIdList) {
         dropTracksFromPlaySet(userId);
         Settings settings = settingsRepository
                 .getSettings(userId, TypeName.PACK);
+        List<Integer> trackListPlaces = trackIdList.stream()
+                .map(trackId -> trackRepository.findByIdAndTgUserId(trackId, userId)
+                        .getListPlace())
+                .toList();
         List<Track> trackList = switch (settings.getTypeType()){
-            case STRAIGHT -> trackRepository.getAllListPlace(userId, trackPositionList);
-            case BACK -> trackRepository.getAllListPlaceDesc(userId, trackPositionList);
-            case RANDOM -> shuffleTracks(trackRepository.getAllListPlace(userId, trackPositionList));
+            case STRAIGHT -> trackRepository.getAllListPlace(userId, trackListPlaces);
+            case BACK -> trackRepository.getAllListPlaceDesc(userId, trackListPlaces);
+            case RANDOM -> shuffleTracks(trackRepository.getAllListPlace(userId, trackListPlaces));
         };
         PlaySet playSet = playSetRepository.getPlaySet(userId);
         playSet.setTracks(trackList);

@@ -14,6 +14,7 @@ import ru.tim.TgMusicMiniApp.telegram_bot.entity.BotMessage;
 import ru.tim.TgMusicMiniApp.telegram_bot.repo.UserInfoRepository;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
+import ru.tim.TgMusicMiniApp.telegram_bot.service.UserInfoService;
 import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
 import java.util.ArrayList;
@@ -24,15 +25,17 @@ import java.util.List;
 public class BotMessageScheduler {
 
     private final BotMessageService botMessageService;
-    private final UserInfoRepository userInfoRepository;
+    private final UserInfoService userInfoService;
     private final TelegramBot bot;
     private final CallBackHandler callBackHandler;
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 60000)
     public void updateAllUserMessages(){
-        List<Long> userIds = userInfoRepository.getAllUniqueUsers();
-        for(Long id : userIds){
-            updateAllUsersMessages(id);
+        List<Long> userIds = userInfoService.getAllUniqueUserIds();
+        if(!userIds.isEmpty()){
+            for(Long id : userIds){
+                updateAllUsersMessages(id);
+            }
         }
     }
 
@@ -74,12 +77,12 @@ public class BotMessageScheduler {
             updatedList.forEach(botMessageService::saveBotMessage);
         }
     }
-
+    
     public Message sendMoveButton(Long userId){
 
         SendMessage message = new SendMessage();
         message.setChatId(userId.toString());
-        message.setText("Нажмите кнопку чтобы продолжить прослушивание:");
+        message.setText("Нажмите Назад/Далее");
         message.setReplyMarkup(KeyBoardUtils.moveButton());
 
         try {

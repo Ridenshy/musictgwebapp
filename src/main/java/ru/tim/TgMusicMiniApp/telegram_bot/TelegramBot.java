@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.menubutton.SetChatMenuButton;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -24,8 +25,10 @@ import ru.tim.TgMusicMiniApp.App.service.TrackService;
 import ru.tim.TgMusicMiniApp.App.service.SettingsService;
 import ru.tim.TgMusicMiniApp.telegram_bot.configuraction.BotProperty;
 import ru.tim.TgMusicMiniApp.telegram_bot.entity.BotMessage;
+import ru.tim.TgMusicMiniApp.telegram_bot.entity.UserInfo;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
+import ru.tim.TgMusicMiniApp.telegram_bot.service.UserInfoService;
 import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
 import java.util.List;
@@ -37,6 +40,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final TrackService trackService;
     private final PlaySetService playSetService;
     private final SettingsService settingsService;
+    private final UserInfoService userInfoService;
     private final CallBackHandler callBackHandler;
 
     @Autowired
@@ -44,14 +48,21 @@ public class TelegramBot extends TelegramLongPollingBot {
                        TrackService trackService,
                        PlaySetService playSetService,
                        SettingsService settingsService,
+                       UserInfoService userInfoService,
                        @Lazy CallBackHandler callBackHandler) {
         super(new DefaultBotOptions(), botProperty.token());
         this.botProperty = botProperty;
         this.trackService = trackService;
         this.playSetService = playSetService;
         this.settingsService = settingsService;
+        this.userInfoService = userInfoService;
         this.callBackHandler = callBackHandler;
 
+    }
+
+    @Override
+    public String getBotUsername() {
+        return botProperty.name();
     }
 
     @Override
@@ -59,8 +70,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         if(update.hasMessage()){
             if("/start".equals(update.getMessage().getText())){
                 Long userId = update.getMessage().getFrom().getId();
-                playSetService.createNewUserPlaySet(userId);
-                settingsService.createTypesSettings(userId);
+                if(!userInfoService.isUserExists(userId)){
+                    userInfoService.addNewUser(userId);
+                    playSetService.createNewUserPlaySet(userId);
+                    settingsService.createTypesSettings(userId);
+                    sendWebAppButton(userId);
+                }
             }
             else if(update.getMessage().hasAudio()){
                 Audio track = update.getMessage().getAudio();
@@ -83,9 +98,17 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    @Override
-    public String getBotUsername() {
-        return botProperty.name();
-    }
 
+    private void sendWebAppButton(Long userId){
+
+        SetChatMenuButton setChatMenuButton = SetChatMenuButton.builder()
+                .chatId(userId)
+                .menuButton(KeyBoardUtils.webAppButton())
+                .build();
+        try {
+            execute(setChatMenuButton);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

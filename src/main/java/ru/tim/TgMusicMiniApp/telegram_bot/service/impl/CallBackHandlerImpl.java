@@ -46,6 +46,7 @@ public class CallBackHandlerImpl implements CallBackHandler {
         Integer alreadyPlayed = playSet.getAlreadyPlayed();
         Integer lastDropAmount = playSet.getLastDropAmount();
         List<Track> trackList = playSet.getTracks();
+
         List<Track> tracksToSend;
         int toSendSize;
         if(!callbackData.equals("back_")){

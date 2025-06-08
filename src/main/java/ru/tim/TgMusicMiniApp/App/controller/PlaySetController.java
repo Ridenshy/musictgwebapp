@@ -24,15 +24,15 @@ public class PlaySetController {
     }
 
     @PostMapping("/generateStartWith")
-    public String generateStartWithPlaySet(@RequestParam Long userId, @RequestParam Integer listPosition){
-        playSetService.generateStartWithPlaySet(userId, listPosition);
+    public String generateStartWithPlaySet(@RequestParam Long userId, @RequestParam Long trackId){
+        playSetService.generateStartWithPlaySet(userId, trackId);
         callBackHandler.sendPlaySetTracks(userId, "");
         return "SW play set generated";
     }
 
     @PostMapping("/generatePack")
-    public String generatePackPlaySet(@RequestParam Long userId, @RequestParam List<Integer> trackPositionList){
-        playSetService.generatePackPlaySet(userId, trackPositionList);
+    public String generatePackPlaySet(@RequestParam Long userId, @RequestParam List<Long> trackIdList){
+        playSetService.generatePackPlaySet(userId, trackIdList);
         callBackHandler.sendPlaySetTracks(userId, "");
         return "SW play set generated";
     }

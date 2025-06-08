@@ -12,4 +12,6 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
     @Query("SELECT u.tgUserId FROM UserInfo u")
     List<Long> getAllUniqueUsers();
 
+    boolean existsByTgUserId(Long userId);
+
 }

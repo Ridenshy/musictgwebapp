@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
+import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 import ru.tim.TgMusicMiniApp.App.repo.TrackRepository;
 import ru.tim.TgMusicMiniApp.App.service.TrackService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,11 +44,17 @@ public class TrackServiceImpl implements TrackService {
     @Override
     public List<TrackDto> deleteTrack(Long trackId, Long userId) {
         Track trackToDelete = trackRepository.findByIdAndTgUserId(trackId, userId);
+
+        for (PlaySet playSet : new ArrayList<>(trackToDelete.getPlaySets())) {
+            playSet.getTracks().remove(trackToDelete);
+        }
+        trackToDelete.getPlaySets().clear();
+
         int deletePos = trackToDelete.getListPlace();
         trackRepository.delete(trackToDelete);
         trackRepository.updatePlaceAfterDelete(userId, deletePos);
-        List<Track> updatedTracks = trackRepository.getAllTracks(userId);
-        return updatedTracks.stream()
+
+        return trackRepository.getAllTracks(userId).stream()
                 .map(this::mapTrack)
                 .collect(Collectors.toList());
     }
@@ -91,7 +99,7 @@ public class TrackServiceImpl implements TrackService {
     //метод чтобы замапить все треки в один лист Dto для фронта
     public TrackDto mapTrack(Track track){
         if(track instanceof TgUserTrack){
-            return mapper.toTrackDro((TgUserTrack) track);
+            return mapper.toTrackDto((TgUserTrack) track);
         }
         else return null;
     }

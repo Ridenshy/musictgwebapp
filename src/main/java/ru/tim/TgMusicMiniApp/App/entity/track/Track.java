@@ -4,10 +4,11 @@ package ru.tim.TgMusicMiniApp.App.entity.track;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import ru.tim.TgMusicMiniApp.App.entity.playset.Album;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @NoArgsConstructor
@@ -38,6 +39,9 @@ public abstract class Track { //abstract track entity
     private Long tgUserId;  //telegram user id
 
     @ManyToMany(mappedBy = "tracks")
-    private Set<PlaySet> playSets = new HashSet<>();
+    private List<PlaySet> playSets = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "tracks")
+    private List<Album> albums = new ArrayList<>();
 
 }

@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
@@ -20,7 +21,9 @@ import java.util.stream.Collectors;
 public class TrackServiceImpl implements TrackService {
 
     private final TrackRepository trackRepository;
+
     private final TrackMapper mapper;
+    private final TextEncryptor textEncryptor;
 
     @Override
     public void saveTgUserTrack(TgUserTrack track) {
@@ -98,8 +101,9 @@ public class TrackServiceImpl implements TrackService {
 
     //метод чтобы замапить все треки в один лист Dto для фронта
     public TrackDto mapTrack(Track track){
+        String encryptedTrackId = textEncryptor.encrypt(track.getId().toString());
         if(track instanceof TgUserTrack){
-            return mapper.toTrackDto((TgUserTrack) track);
+            return mapper.toTrackDto((TgUserTrack) track, encryptedTrackId);
         }
         else return null;
     }

@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
@@ -13,9 +14,6 @@ import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
 import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.BooleanUtils.forEach;
 
 
 @Service
@@ -25,6 +23,7 @@ public class PlaySetServiceImpl implements PlaySetService {
     private final PlaySetRepository playSetRepository;
     private final SettingsRepository settingsRepository;
     private final TrackRepository trackRepository;
+
     private final Random random = new Random();
 
     @Override

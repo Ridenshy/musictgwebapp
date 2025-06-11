@@ -6,6 +6,7 @@ target/
 
 src/main/resources/telegramValues.yml
 src/main/resources/databaseConnection.yml
+src/main/resources/encrypt.yml
 
 ### STS ###
 .apt_generated

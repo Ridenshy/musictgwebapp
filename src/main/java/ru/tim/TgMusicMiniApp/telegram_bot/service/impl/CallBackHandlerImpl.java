@@ -158,10 +158,12 @@ public class CallBackHandlerImpl implements CallBackHandler {
                 bot.execute(deleteMessages);
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
+            }finally {
+                for(BotMessage botMessage : botMessageList){
+                    botMessageService.deleteMessage(botMessage);
+                }
+
             }
-        }
-        for(BotMessage botMessage : botMessageList){
-            botMessageService.deleteMessage(botMessage);
         }
 
     }

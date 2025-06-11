@@ -1,18 +1,17 @@
 package ru.tim.TgMusicMiniApp.App.dto.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TrackMapper {
 
     @Mapping(target = "duration", expression = "java(formatDuration(track.getDuration()))")
-    TrackDto toTrackDto(TgUserTrack track);
+    @Mapping(target = "id", expression = "java(encryptedTrackId)")
+    TrackDto toTrackDto(TgUserTrack track, String encryptedTrackId);
 
     default String formatDuration(Integer duration){
         if(duration == null){return null;}

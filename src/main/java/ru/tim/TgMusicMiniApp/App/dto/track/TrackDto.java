@@ -8,7 +8,7 @@ import lombok.Value;
  */
 @Value
 public class TrackDto {
-    Long id;
+    String id;
     String title;
     String artist;
     String duration;

@@ -6,8 +6,6 @@ import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 
 @Value
 public class BotSettingsDto {
-
     Integer amount;
     TypeName typeName;
-
 }

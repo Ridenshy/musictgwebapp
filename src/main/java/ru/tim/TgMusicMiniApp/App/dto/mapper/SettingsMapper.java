@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.App.dto.mapper;
 
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 import ru.tim.TgMusicMiniApp.App.dto.settings.BotSettingsDto;
@@ -14,13 +15,7 @@ public interface SettingsMapper {
 
     BotSettingsDto toBotSettingsDto(Settings settings);
 
-    SettingsDto toSettingsDto(Settings settings);
-
-    Settings toSettings(BotSettingsDto botSettingsDto);
-
-    UpdatedSettings toUpdatedSettings(Settings settings);
-
-    Settings toSettings(UpdatedSettings updatedSettings);
-
+    @Mapping(target = "tgUserId", expression = "java(encryptedUserId)")
+    SettingsDto toSettingsDto(Settings settings, String encryptedUserId);
 
 }

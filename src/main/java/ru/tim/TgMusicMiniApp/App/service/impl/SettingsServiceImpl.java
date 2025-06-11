@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.dto.settings.BotSettingsDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.SettingsMapper;
@@ -20,12 +21,17 @@ import java.util.List;
 public class SettingsServiceImpl implements SettingsService {
 
     private final SettingsRepository settingsRepository;
+
     private final SettingsMapper settingsMapper;
+    private final TextEncryptor textEncryptor;
 
     @Override
     public List<SettingsDto> getAllUserSettings(Long userId) {
+        String encryptedUserId = textEncryptor.encrypt(userId.toString());
         return settingsRepository.getAllUserSettings(userId)
-                .stream().map(settingsMapper::toSettingsDto).toList();
+                .stream()
+                .map(settings -> settingsMapper.toSettingsDto(settings, encryptedUserId))
+                .toList();
     }
 
 
@@ -33,15 +39,18 @@ public class SettingsServiceImpl implements SettingsService {
     @Override
     public SettingsDto getSettingsDto(Long userId, TypeName typeName) {
         return settingsMapper.toSettingsDto(
-                settingsRepository.getSettings(userId, typeName)
+                settingsRepository.getSettings(userId, typeName),
+                textEncryptor.encrypt(userId.toString())
         );
     }
 
     @Override
     public SettingsDto setActiveSettings(SettingsDto settingsDto) {
-        settingsRepository.setActiveSettings(settingsDto.getTgUserId(), settingsDto.getTypeName());
+        Long userId = Long.parseLong(textEncryptor.decrypt(settingsDto.getTgUserId()));
+        settingsRepository.setActiveSettings(userId, settingsDto.getTypeName());
         return settingsMapper.toSettingsDto(
-                settingsRepository.getActiveSettings(settingsDto.getTgUserId())
+                settingsRepository.getActiveSettings(userId),
+                textEncryptor.encrypt(settingsDto.getTgUserId())
         );
     }
 
@@ -59,12 +68,14 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     public SettingsDto updateSettings(UpdatedSettings settings) {
-        settingsRepository.updateSettings(settings.getTgUserId(),
+        Long userId = Long.parseLong(textEncryptor.decrypt(settings.getTgUserId()));
+        settingsRepository.updateSettings(userId,
                 settings.getTypeName(),
                 settings.getTypeType(),
                 settings.getAmount());
         return settingsMapper.toSettingsDto(
-                settingsRepository.getSettings(settings.getTgUserId(), settings.getTypeName())
+                settingsRepository.getSettings(userId, settings.getTypeName()),
+                textEncryptor.encrypt(settings.getTgUserId())
         );
     }
 

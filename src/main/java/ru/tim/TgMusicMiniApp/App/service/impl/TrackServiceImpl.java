@@ -6,6 +6,7 @@ import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
@@ -54,6 +55,9 @@ public class TrackServiceImpl implements TrackService {
 
         for (PlaySet playSet : new ArrayList<>(trackToDelete.getPlaySets())) {
             playSet.getTracks().remove(trackToDelete);
+        }
+        for(Album album : new ArrayList<>(trackToDelete.getAlbums())) {
+            album.getTracks().remove(trackToDelete);
         }
         trackToDelete.getPlaySets().clear();
 
@@ -107,7 +111,7 @@ public class TrackServiceImpl implements TrackService {
 
 
     //метод чтобы замапить все треки в один лист Dto для фронта
-    public TrackDto mapTrack(Track track){
+    private TrackDto mapTrack(Track track){
         String encryptedTrackId = textEncryptor.encrypt(track.getId().toString());
         if(track instanceof TgUserTrack){
             return mapper.toTrackDto((TgUserTrack) track, encryptedTrackId);

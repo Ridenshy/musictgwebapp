@@ -10,13 +10,19 @@ import ru.tim.TgMusicMiniApp.App.dto.album.AlbumGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.AlbumIconDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.AlbumMapper;
+import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
+import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumGradient;
 import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumIcon;
+import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
+import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumGradientRepository;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumIconRepository;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumRepository;
+import ru.tim.TgMusicMiniApp.App.repo.TrackRepository;
 import ru.tim.TgMusicMiniApp.App.service.AlbumService;
+import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 
 import java.nio.file.Files;
@@ -30,11 +36,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AlbumServiceImpl implements AlbumService {
 
+    private final PlaySetService playSetService;
+
     private final AlbumRepository albumRepository;
     private final AlbumGradientRepository albumGradientRepository;
     private final AlbumIconRepository albumIconRepository;
+    private final TrackRepository trackRepository;
 
     private final AlbumMapper albumMapper;
+    private final TrackMapper trackMapper;
     private final TextEncryptor textEncryptor;
 
     @Value("${file-save-dir}")
@@ -146,17 +156,45 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     public List<AlbumDto> updateAlbum(AlbumDto albumDto) {
-        return List.of();
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(albumDto.getTgUserId()));
+
+        Album album = albumRepository.getReferenceById(decUserId);
+        album.setName(albumDto.getName());
+
+        AlbumIcon icon = albumIconRepository
+                .getAlbumIconByPathAndTgUserId(albumDto.getAlbumIconPath(), decUserId);
+        album.setAlbumIcon(icon);
+
+        AlbumGradient albumGradient = albumGradientRepository
+                .getAlbumGradientByHexCombinationAndTgUserId(
+                        decUserId,
+                        albumDto.getHexColor1(),
+                        albumDto.getHexColor2(),
+                        albumDto.getHexColor3()
+                );
+        album.setGradient(albumGradient);
+
+        album.setIsIcon(icon != null);
+
+        albumRepository.save(album);
+
+        return getAlbumDtoList(albumDto.getTgUserId());
     }
 
     @Override
-    public List<AlbumDto> deleteAlbum(AlbumDto albumDto) {
-        return List.of();
+    public List<AlbumDto> deleteAlbum(String userId, String albumId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        albumRepository.deleteUserAlbum(decUserId, decAlbumId);
+
+        return getAlbumDtoList(userId);
     }
 
     @Override
-    public void playAlbum(AlbumDto albumDto) {
-
+    public void playAlbum(String albumId) {
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        Album album = albumRepository.getReferenceById(decAlbumId);
+        playSetService.generateAlbumPlaySet(album);
     }
 
     private List<AlbumGradientDto> getAlbumGradientDtoList(String userId) {
@@ -201,9 +239,42 @@ public class AlbumServiceImpl implements AlbumService {
         return getAlbumIconDtoList(albumIconDto.getTgUserId());
     }
 
+    private TrackDto mapTrack(Track track){
+        String encryptedTrackId = textEncryptor.encrypt(track.getId().toString());
+        if(track instanceof TgUserTrack){
+            return trackMapper.toTrackDto((TgUserTrack) track, encryptedTrackId);
+        }
+        else return null;
+    }
 
     @Override
-    public List<TrackDto> getAlbumTracks(String albumId, String userId) {
-        return List.of();
+    public List<TrackDto> getAlbumTracks(String albumId) {
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        Album album = albumRepository.getReferenceById(decAlbumId);
+        return album.getTracks().stream().map(this::mapTrack).toList();
+    }
+
+    @Override
+    public AlbumDto dropTrackFromAlbum(String albumId, String trackId) {
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+
+        Album album = albumRepository.getReferenceById(decAlbumId);
+        Track track = trackRepository.getReferenceById(decTrackId);
+
+        for(Track trackToDrop : album.getTracks()){
+            if(trackToDrop.equals(track)){
+                album.getTracks().remove(track);
+            }
+        }
+        String encUserId = textEncryptor.encrypt(album.getTgUserId().toString());
+
+        List<String> encTrackIds = album.getTracks()
+                .stream()
+                .map(t ->
+                        textEncryptor.encrypt(t.getId().toString()))
+                .toList();
+
+        return albumMapper.albumToAlbumDto(album, albumId, encUserId, encTrackIds);
     }
 }

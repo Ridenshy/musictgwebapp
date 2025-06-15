@@ -4,6 +4,7 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
@@ -81,6 +82,15 @@ public class PlaySetServiceImpl implements PlaySetService {
         };
         PlaySet playSet = playSetRepository.getPlaySet(userId);
         playSet.setTracks(trackList);
+        playSet.setAlreadyPlayed(0);
+        playSet.setLastDropAmount(0);
+        playSetRepository.save(playSet);
+    }
+
+    @Override
+    public void generateAlbumPlaySet(Album album) {
+        PlaySet playSet = playSetRepository.getPlaySet(album.getTgUserId());
+        playSet.setTracks(album.getTracks());
         playSet.setAlreadyPlayed(0);
         playSet.setLastDropAmount(0);
         playSetRepository.save(playSet);

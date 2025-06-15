@@ -30,10 +30,10 @@ public interface AlbumService {
     List<AlbumDto> updateAlbum(AlbumDto albumDto);
 
     @Transactional
-    List<AlbumDto> deleteAlbum(AlbumDto albumDto);
+    List<AlbumDto> deleteAlbum(String userId, String albumId);
 
     @Transactional
-    void playAlbum(AlbumDto albumDto);
+    void playAlbum(String albumId);
 
     @Transactional(readOnly = true)
     List<AlbumGradientDto> getUserGradients(String userId);
@@ -48,7 +48,8 @@ public interface AlbumService {
     List<AlbumIconDto> saveUserIcon(AlbumIconDto albumIconDto);
 
     @Transactional(readOnly = true)
-    List<TrackDto> getAlbumTracks(String albumId, String userId);
+    List<TrackDto> getAlbumTracks(String albumId);
 
-
+    @Transactional
+    AlbumDto dropTrackFromAlbum(String albumId, String trackId);
 }

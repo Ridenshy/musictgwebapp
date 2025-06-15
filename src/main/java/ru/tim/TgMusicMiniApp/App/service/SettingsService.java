@@ -13,7 +13,7 @@ import java.util.List;
 public interface SettingsService {
 
     @Transactional(readOnly = true)
-    List<SettingsDto> getAllUserSettings(Long userId);
+    List<SettingsDto> getAllUserSettings(String userId);
 
     @Transactional(readOnly = true)
     SettingsDto getSettingsDto(Long userId, TypeName typeName);

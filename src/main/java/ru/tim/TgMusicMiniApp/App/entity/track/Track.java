@@ -4,7 +4,7 @@ package ru.tim.TgMusicMiniApp.App.entity.track;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import ru.tim.TgMusicMiniApp.App.entity.playset.Album;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 
 import java.util.ArrayList;

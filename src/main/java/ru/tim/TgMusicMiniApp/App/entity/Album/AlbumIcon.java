@@ -1,4 +1,4 @@
-package ru.tim.TgMusicMiniApp.App.entity.playset;
+package ru.tim.TgMusicMiniApp.App.entity.Album;
 
 
 import jakarta.persistence.*;
@@ -15,6 +15,9 @@ public class AlbumIcon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private Long tgUserId;
 
     @Column(nullable = false)
     private String path;

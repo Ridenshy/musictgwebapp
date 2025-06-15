@@ -18,12 +18,10 @@ public class SettingsController {
 
     private final SettingsService settingsService;
 
-    private final TextEncryptor textEncryptor;
 
     @GetMapping("/getList")
     public List<SettingsDto> getSettingsDto(@RequestParam String encUserId){
-        Long userId = Long.parseLong(textEncryptor.decrypt(encUserId));
-        return settingsService.getAllUserSettings(userId);
+        return settingsService.getAllUserSettings(encUserId);
     }
 
     @PostMapping("/setCurrent")

@@ -1,4 +1,4 @@
-package ru.tim.TgMusicMiniApp.App.entity.playset;
+package ru.tim.TgMusicMiniApp.App.entity.Album;
 
 
 import jakarta.persistence.*;
@@ -26,12 +26,19 @@ public class Album {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne
+    @Column(nullable = false)
+    private Integer playListPlace;
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "icon_id")
     private AlbumIcon albumIcon;
 
+    @ManyToOne
+    @JoinColumn(name = "gradient_id")
+    private AlbumGradient gradient;
+
     @Column(nullable = false)
-    private Integer playListPlace;
+    private Boolean isIcon;
 
     @ManyToMany(
             cascade = { CascadeType.PERSIST, CascadeType.MERGE},

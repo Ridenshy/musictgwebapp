@@ -31,8 +31,9 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public List<TrackDto> getAllUserTracks(Long userId) {
-        List<Track> trackList = trackRepository.getAllTracks(userId);
+    public List<TrackDto> getAllUserTracks(String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        List<Track> trackList = trackRepository.getAllTracks(decUserId);
         return trackList.stream()
                 .map(this::mapTrack)
                 .collect(Collectors.toList());
@@ -45,8 +46,11 @@ public class TrackServiceImpl implements TrackService {
 
 
     @Override
-    public List<TrackDto> deleteTrack(Long trackId, Long userId) {
-        Track trackToDelete = trackRepository.findByIdAndTgUserId(trackId, userId);
+    public List<TrackDto> deleteTrack(String trackId, String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+
+        Track trackToDelete = trackRepository.findByIdAndTgUserId(decTrackId, decUserId);
 
         for (PlaySet playSet : new ArrayList<>(trackToDelete.getPlaySets())) {
             playSet.getTracks().remove(trackToDelete);
@@ -55,19 +59,22 @@ public class TrackServiceImpl implements TrackService {
 
         int deletePos = trackToDelete.getListPlace();
         trackRepository.delete(trackToDelete);
-        trackRepository.updatePlaceAfterDelete(userId, deletePos);
+        trackRepository.updatePlaceAfterDelete(decUserId, deletePos);
 
-        return trackRepository.getAllTracks(userId).stream()
+        return trackRepository.getAllTracks(decUserId).stream()
                 .map(this::mapTrack)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<TrackDto> updateListPlace(Integer newPlace, Long trackId, Long userId) {
-        Track movedTrack = trackRepository.findByIdAndTgUserId(trackId, userId);
+    public List<TrackDto> updateListPlace(Integer newPlace, String trackId, String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+
+        Track movedTrack = trackRepository.findByIdAndTgUserId(decTrackId, decUserId);
         Integer oldPos = movedTrack.getListPlace();
 
-        List<Track> trackList = trackRepository.getAllTracks(userId);
+        List<Track> trackList = trackRepository.getAllTracks(decUserId);
         if(oldPos < newPlace){
             trackList.stream()
                     .filter(track -> track.getListPlace() > oldPos && track.getListPlace() <= newPlace)
@@ -87,7 +94,7 @@ public class TrackServiceImpl implements TrackService {
         movedTrack.setListPlace(newPlace);
         trackRepository.save(movedTrack);
 
-        List<Track> updatedTracks = trackRepository.getAllTracks(userId);
+        List<Track> updatedTracks = trackRepository.getAllTracks(decUserId);
         return updatedTracks.stream()
                 .map(this::mapTrack)
                 .collect(Collectors.toList());

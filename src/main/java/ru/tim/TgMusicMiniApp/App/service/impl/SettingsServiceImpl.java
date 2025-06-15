@@ -26,11 +26,11 @@ public class SettingsServiceImpl implements SettingsService {
     private final TextEncryptor textEncryptor;
 
     @Override
-    public List<SettingsDto> getAllUserSettings(Long userId) {
-        String encryptedUserId = textEncryptor.encrypt(userId.toString());
-        return settingsRepository.getAllUserSettings(userId)
+    public List<SettingsDto> getAllUserSettings(String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        return settingsRepository.getAllUserSettings(decUserId)
                 .stream()
-                .map(settings -> settingsMapper.toSettingsDto(settings, encryptedUserId))
+                .map(settings -> settingsMapper.toSettingsDto(settings, userId))
                 .toList();
     }
 

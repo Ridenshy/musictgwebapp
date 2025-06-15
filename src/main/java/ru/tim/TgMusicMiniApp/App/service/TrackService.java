@@ -14,16 +14,16 @@ public interface TrackService {
     void saveTgUserTrack(TgUserTrack track);
 
     @Transactional(readOnly = true)
-    List<TrackDto> getAllUserTracks(Long userId);
+    List<TrackDto> getAllUserTracks(String userId);
 
     @Transactional(readOnly = true)
     List<Track> getAllUserTracksEntity(Long userId);
 
     @Transactional
-    List<TrackDto> deleteTrack(Long trackId, Long userId);
+    List<TrackDto> deleteTrack(String trackId, String userId);
 
     @Transactional
-    List<TrackDto> updateListPlace(Integer newPlace, Long trackId, Long userId);
+    List<TrackDto> updateListPlace(Integer newPlace, String trackId, String userId);
 
     @Transactional(readOnly = true)
     Integer getTracksAmount(Long userId);

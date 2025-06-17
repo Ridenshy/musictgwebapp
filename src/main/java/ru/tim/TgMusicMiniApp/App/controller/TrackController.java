@@ -1,6 +1,8 @@
 package ru.tim.TgMusicMiniApp.App.controller;
 
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
@@ -16,19 +18,20 @@ public class TrackController {
     private final TrackService trackService;
 
     @GetMapping("/getList")
-    public List<TrackDto> getTracks(@RequestParam String encUserId){
+    public List<TrackDto> getTracks(@RequestParam @NotNull String encUserId){
         return trackService.getAllUserTracks(encUserId);
     }
 
     @DeleteMapping("/delete")
-    public List<TrackDto> deleteTrack(@RequestParam String encTrackId, @RequestParam String encUserId){
+    public List<TrackDto> deleteTrack(@RequestParam @NotNull String encTrackId,
+                                      @RequestParam @NotNull String encUserId){
         return trackService.deleteTrack(encTrackId, encUserId);
     }
 
     @PatchMapping("/changeListPlace")
-    public List<TrackDto> updateListPlace(@RequestParam Integer newPlace,
-                                          @RequestParam String encTrackId,
-                                          @RequestParam String encUserId){
+    public List<TrackDto> updateListPlace(@RequestParam @NotNull @Positive Integer newPlace,
+                                          @RequestParam @NotNull String encTrackId,
+                                          @RequestParam @NotNull String encUserId){
         return trackService.updateListPlace(newPlace, encTrackId, encUserId);
     }
 

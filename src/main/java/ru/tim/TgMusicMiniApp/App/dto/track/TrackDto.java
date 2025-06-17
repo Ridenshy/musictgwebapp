@@ -13,14 +13,18 @@ import lombok.Value;
 public class TrackDto {
     @NotNull
     String id;
+
     @NotNull
     @Size(min = 1, max = 50)
     String title;
+
     @NotNull
     @Size(min = 1, max = 50)
     String artist;
+
     @NotNull
     String duration;
+
     @NotNull
     @Positive
     Long listPlace;

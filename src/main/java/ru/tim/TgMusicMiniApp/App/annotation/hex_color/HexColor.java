@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = HexColorValidator.class)
-@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.ANNOTATION_TYPE, })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HexColor {
     String message() default "Invalid hex color, must be #RRGGBB format";

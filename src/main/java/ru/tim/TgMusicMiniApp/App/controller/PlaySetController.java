@@ -1,6 +1,8 @@
 package ru.tim.TgMusicMiniApp.App.controller;
 
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,7 @@ public class PlaySetController {
     private final TextEncryptor textEncryptor;
 
     @PostMapping("/generateStandard")
-    public String generateStandardPlaySet(@RequestParam String encUserId){
+    public String generateStandardPlaySet(@RequestParam @NotNull String encUserId){
         Long userId = Long.parseLong(textEncryptor.decrypt(encUserId));
         playSetService.generateStandardPlaySet(userId);
         callBackHandler.sendPlaySetTracks(userId, "");
@@ -28,7 +30,8 @@ public class PlaySetController {
     }
 
     @PostMapping("/generateStartWith")
-    public String generateStartWithPlaySet(@RequestParam String encUserId, @RequestParam String encTrackId){
+    public String generateStartWithPlaySet(@RequestParam @NotNull String encUserId,
+                                           @RequestParam @NotNull String encTrackId){
         Long userId = Long.parseLong(textEncryptor.decrypt(encUserId));
         Long trackId = Long.parseLong(textEncryptor.decrypt(encTrackId));
         playSetService.generateStartWithPlaySet(userId, trackId);
@@ -37,7 +40,8 @@ public class PlaySetController {
     }
 
     @PostMapping("/generatePack")
-    public String generatePackPlaySet(@RequestParam String encUserId, @RequestParam List<String> encTrackIdList){
+    public String generatePackPlaySet(@RequestParam @NotNull String encUserId,
+                                      @RequestParam @NotEmpty List<String> encTrackIdList){
         List<Long> trackIdList = encTrackIdList.stream()
                 .map(id -> Long.parseLong(textEncryptor.decrypt(id))).toList();
         Long userId = Long.parseLong(textEncryptor.decrypt(encUserId));

@@ -26,6 +26,8 @@ import ru.tim.TgMusicMiniApp.App.service.AlbumService;
 import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ import java.util.List;
 public class AlbumServiceImpl implements AlbumService {
 
     private final PlaySetService playSetService;
+    private final GoogleDriveService googleDriveService;
 
     private final AlbumRepository albumRepository;
     private final GradientRepository gradientRepository;
@@ -221,13 +224,51 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public IconDto saveNewIcon(MultipartFile newIcon) {
-        return null;
+    public IconDto saveNewIcon(MultipartFile newIcon, String userId) {
+        String decUserId = textEncryptor.decrypt(userId);
+
+        try {
+            String fileId = googleDriveService.uploadFile(newIcon, decUserId);
+            Icon icon = Icon.builder()
+                    .tgUserId(Long.parseLong(decUserId))
+                    .path(fileId)
+                    .build();
+            Icon savedIcon = iconRepository.save(icon);
+            String encIconId = textEncryptor.encrypt(savedIcon.getId().toString());
+            return albumMapper.iconToIconDto(savedIcon, encIconId, userId);
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
-    public MultipartFile getIconFile(String iconId) {
-        return null;
+    public void deleteIcon( String iconId) {
+        Long decIconId = Long.parseLong(textEncryptor.decrypt(iconId));
+
+        Icon icon = iconRepository.findById(decIconId)
+                .orElseThrow(() -> new EntityNotFoundException("Icon not found"));
+
+        List<Album> albums = albumRepository.findAlbumByIcon_Id(decIconId);
+        albums.forEach(album -> album.setIcon(null));
+        albumRepository.saveAllAndFlush(albums);
+
+        try {
+            googleDriveService.deleteFile(icon.getPath());
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+
+        iconRepository.delete(icon);
+    }
+
+    @Override
+    public byte[] getIconFile(String iconId) {
+        try {
+            return googleDriveService.downloadFile(iconId);
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -12,10 +12,13 @@ import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
  */
 @Value
 public class UpdatedSettings {
+
     @NotNull
     String tgUserId;
+
     @NotNull
     TypeName typeName;
+
     @NotNull
     TypeType typeType;
 

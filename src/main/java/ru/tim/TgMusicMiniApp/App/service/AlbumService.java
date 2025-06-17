@@ -41,10 +41,13 @@ public interface AlbumService {
     List<IconDto> getUserIcons(String userId);
 
     @Transactional
-    IconDto saveNewIcon(MultipartFile newIcon);
+    IconDto saveNewIcon(MultipartFile newIcon, String userId);
 
     @Transactional
-    MultipartFile getIconFile(String iconId);
+    void deleteIcon(String iconId);
+
+    @Transactional
+    byte[] getIconFile(String iconId);
 
     @Transactional(readOnly = true)
     List<TrackDto> getAlbumTracks(String albumId);

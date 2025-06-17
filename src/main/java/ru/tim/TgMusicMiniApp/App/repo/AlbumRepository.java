@@ -22,4 +22,6 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     void deleteUserAlbum(Long userId, Long albumId);
 
     List<Album> findAlbumByGradient_Id(Long gradientId);
+
+    List<Album> findAlbumByIcon_Id(Long iconId);
 }

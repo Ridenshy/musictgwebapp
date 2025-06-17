@@ -1,8 +1,8 @@
 package ru.tim.TgMusicMiniApp.App.dto.album;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Value;
+import org.hibernate.validator.constraints.Length;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 
 /**
@@ -15,7 +15,7 @@ public class NewAlbumDto {
     String tgUserId;
 
     @NotNull
-    @Size(min = 2, max = 50)
+    @Length(min = 1, max = 50)
     String name;
 
     String gradientId;

@@ -10,12 +10,16 @@ import ru.tim.TgMusicMiniApp.App.entity.enums.TypeType;
 
 @Value
 public class SettingsDto {
+
     @NotNull
     String tgUserId;
+
     @NotNull
     TypeName typeName;
+
     @NotNull
     TypeType typeType;
+
     @NotNull
     Boolean active;
 

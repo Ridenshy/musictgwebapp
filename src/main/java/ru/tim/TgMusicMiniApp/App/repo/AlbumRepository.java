@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface AlbumRepository extends JpaRepository<Album, Long> {
 
-    @EntityGraph(attributePaths = {"albumIcon", "gradient", "tracks"})
+    @EntityGraph(attributePaths = {"icon", "gradient", "tracks"})
     @Query("SELECT a FROM Album a WHERE a.tgUserId = :userId")
     List<Album> getAllUserAlbums(Long userId);
 
@@ -21,5 +21,5 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     @Query("DELETE FROM Album a WHERE a.tgUserId = :userId AND a.id = :albumId")
     void deleteUserAlbum(Long userId, Long albumId);
 
-
+    List<Album> findAlbumByGradient_Id(Long gradientId);
 }

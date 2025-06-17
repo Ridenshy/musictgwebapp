@@ -1,4 +1,4 @@
-package ru.tim.TgMusicMiniApp.App.dto.album;
+package ru.tim.TgMusicMiniApp.App.dto.icon;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Value;
@@ -7,11 +7,6 @@ import lombok.Value;
 public class AlbumIconDto {
 
     @NotNull
-    String id;
-
-    @NotNull
-    String tgUserId;
-
-    @NotNull
     String path;
+
 }

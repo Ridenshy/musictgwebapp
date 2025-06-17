@@ -16,7 +16,7 @@ public class Gradient {
     private Long id;
 
     @Column(nullable = false)
-    private Long telegramId;
+    private Long tgUserId;
 
     @Column(nullable = false)
     private String hexColor1;

@@ -1,11 +1,11 @@
 package ru.tim.TgMusicMiniApp.App.dto.album;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Value;
-import ru.tim.TgMusicMiniApp.App.annotation.hex_color.HexColor;
+import ru.tim.TgMusicMiniApp.App.dto.gradient.AlbumGradientDto;
+import ru.tim.TgMusicMiniApp.App.dto.icon.AlbumIconDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 
 import java.util.List;
@@ -15,26 +15,20 @@ import java.util.List;
  */
 @Value
 public class AlbumDto {
+
     @NotNull
     String id;
+
     @NotNull
     String tgUserId;
+
     @NotNull
     @Size(min = 1, max = 50)
     String name;
 
-    @NotNull
-    String albumIconPath;
+    AlbumIconDto icon;
 
-    @NotNull
-    @HexColor
-    String hexColor1;
-    @NotNull
-    @HexColor
-    String hexColor2;
-    @NotNull
-    @HexColor
-    String hexColor3;
+    AlbumGradientDto gradient;
 
     @Positive
     Integer playListPlace;

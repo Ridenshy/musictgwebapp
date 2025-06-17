@@ -29,11 +29,11 @@ public class Album {
     @Column(nullable = false)
     private Integer playListPlace;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "icon_id")
     private Icon icon;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "gradient_id")
     private Gradient gradient;
 
@@ -45,10 +45,11 @@ public class Album {
             fetch = FetchType.LAZY
     )
     @JoinTable(
-            name = "play_list_tracks",
-            joinColumns = @JoinColumn(name = "play_list_id"),
+            name = "albums_tracks",
+            joinColumns = @JoinColumn(name = "album_id"),
             inverseJoinColumns = @JoinColumn(name = "track_id")
     )
+
     @OrderColumn(name = "track_order")
     List<Track> tracks = new ArrayList<>();
 

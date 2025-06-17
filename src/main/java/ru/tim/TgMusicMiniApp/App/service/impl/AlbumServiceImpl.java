@@ -6,17 +6,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.tim.TgMusicMiniApp.App.dto.album.AlbumDto;
-import ru.tim.TgMusicMiniApp.App.dto.album.AlbumGradientDto;
-import ru.tim.TgMusicMiniApp.App.dto.album.AlbumIconDto;
-import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
+import ru.tim.TgMusicMiniApp.App.dto.album.*;
+import ru.tim.TgMusicMiniApp.App.dto.gradient.GradientDto;
+import ru.tim.TgMusicMiniApp.App.dto.gradient.NewGradientDto;
+import ru.tim.TgMusicMiniApp.App.dto.gradient.UpdatedGradientDto;
+import ru.tim.TgMusicMiniApp.App.dto.icon.IconDto;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.AlbumMapper;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
-import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 import ru.tim.TgMusicMiniApp.App.repo.GradientRepository;
 import ru.tim.TgMusicMiniApp.App.repo.IconRepository;
@@ -26,12 +26,8 @@ import ru.tim.TgMusicMiniApp.App.service.AlbumService;
 import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -51,15 +47,20 @@ public class AlbumServiceImpl implements AlbumService {
     @Value("${file-save-dir}")
     private String albumIconSaveDir;
 
-    private List<AlbumDto> getAlbumDtoList(String userId){
+
+    @Override
+    public List<AlbumDto> getUserAlbums(String userId) {
+
         Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
 
         return albumRepository.getAllUserAlbums(decUserId)
-                .stream().map(album -> {
+                .stream().map(
+                        album -> {
                             String encAlbumId = textEncryptor.encrypt(album.getId().toString());
                             List<String> encTrackIds = new ArrayList<>();
-                            if(album.getTracks() != null){
-                                 encTrackIds = album.getTracks()
+                            List<Track> tracks = album.getTracks();
+                            if(tracks != null){
+                                encTrackIds = tracks
                                         .stream()
                                         .map(track ->
                                                 textEncryptor.encrypt(track.getId().toString()))
@@ -68,223 +69,179 @@ public class AlbumServiceImpl implements AlbumService {
                             return albumMapper.albumToAlbumDto(album, encAlbumId, userId, encTrackIds);
                         }
                 ).toList();
+
     }
 
-    private String saveAlbumIconFile(MultipartFile albumIcon, String encUserId){
-        try{
-            String decUserId = textEncryptor.decrypt(encUserId);
+    private AlbumDto convertAlbumToDto(Album album){
+        String encAlbumId = textEncryptor.encrypt(album.getId().toString());
+        String encUserId = textEncryptor.encrypt(album.getTgUserId().toString());
 
-            Path userDir = Paths.get(albumIconSaveDir, decUserId);
-            if(!Files.exists(userDir)){
-                Files.createDirectories(userDir);
-            }
-
-            String fileName = UUID.randomUUID() + ".png";
-            Path path = userDir.resolve(fileName);
-            albumIcon.transferTo(path.toFile());
-            return path.toString();
-        } catch (Exception e){
-            throw new RuntimeException("Failed to save icon ", e);
+        List<String> encTrackIds = new ArrayList<>();
+        List<Track> tracks = album.getTracks();
+        if(tracks != null){
+            encTrackIds = tracks
+                    .stream()
+                    .map(track -> textEncryptor.encrypt(track.getId().toString())).toList();
         }
+
+
+        return albumMapper.albumToAlbumDto(album, encAlbumId, encUserId, encTrackIds);
     }
 
-    private Long decodeGradientId(NewAlbumDto newAlbumDto){
-        if(newAlbumDto.getGradient() != null){
-            String gradientId = newAlbumDto.getGradient().getId();
-            Long decGradientId = null;
-            if(gradientId != null){
-                decGradientId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getGradient().getId()));
-            }
-            return decGradientId;
+    @Override
+    public AlbumDto createAlbum(NewAlbumDto newAlbumDto) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
+
+        String encGradientId = newAlbumDto.getGradientId();
+        Long decGradientId = null;
+        Gradient gradient = null;
+        if(encGradientId != null){
+            decGradientId = Long.parseLong(textEncryptor.decrypt(encGradientId));
+            gradient = gradientRepository.findById(decGradientId).orElse(null);
         }
+
+        String encIconId = newAlbumDto.getIconId();
+        Long decIconId = null;
+        Icon icon = null;
+        boolean isIcon = false;
+        if(encIconId != null){
+            decIconId = Long.parseLong(textEncryptor.decrypt(encIconId));
+            icon = iconRepository.findById(decIconId).orElse(null);
+            isIcon = true;
+        }
+
+        Integer playListPlace = albumRepository.getUserAlbumsCount(decUserId);
+
+        Album album = albumMapper.newAlbumDtoToAlbum(
+                newAlbumDto,
+                decUserId,
+                isIcon,
+                playListPlace
+        );
+
+        album.setGradient(gradient);
+        album.setIcon(icon);
+
+        Album savedAlbum = albumRepository.save(album);
+
+        return convertAlbumToDto(savedAlbum);
+    }
+
+    @Override
+    public AlbumDto updateAlbum(UpdatedAlbumDto updatedAlbumDto) {
+
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(updatedAlbumDto.getId()));
+        Long decGradientId = Long.parseLong(textEncryptor.decrypt(updatedAlbumDto.getGradientId()));
+
+
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
+        Gradient gradient = gradientRepository.findById(decGradientId).orElse(null);
+        Icon icon = iconRepository.findById(decGradientId).orElse(null);
+
+        album.setName(updatedAlbumDto.getName());
+        album.setGradient(gradient);
+        album.setIcon(icon);
+
+        Album savedAlbum = albumRepository.save(album);
+
+        return convertAlbumToDto(savedAlbum);
+    }
+
+    @Override
+    public void deleteAlbum(String userId, String albumId) {
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+
+        albumRepository.deleteUserAlbum(decUserId, decAlbumId);
+
+    }
+
+    @Override
+    public List<GradientDto> getUserGradients(String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+
+        return gradientRepository.getAllUserGradients(decUserId)
+                .stream().map(gradient -> {
+                    String encGradientId = textEncryptor.encrypt(gradient.getId().toString());
+                    return albumMapper.gradientToGradientDto(gradient, encGradientId, userId);
+                }).toList();
+    }
+
+    private GradientDto convertGradientToDto(Gradient gradient) {
+        String encGradientId = textEncryptor.encrypt(gradient.getId().toString());
+        String encUserId = textEncryptor.encrypt(gradient.getTgUserId().toString());
+        return albumMapper.gradientToGradientDto(gradient, encGradientId, encUserId);
+    }
+
+    @Override
+    public GradientDto saveAlbumGradient(NewGradientDto newGradientDto) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(newGradientDto.getTgUserId()));
+        Gradient gradient = albumMapper.newGradientDtoToGradient(newGradientDto, decUserId);
+        return convertGradientToDto(gradientRepository.save(gradient));
+    }
+
+    @Override
+    public GradientDto updateGradient(UpdatedGradientDto updatedGradientDto) {
+        Long decGradientId = Long.parseLong(textEncryptor.decrypt(updatedGradientDto.getId()));
+
+        Gradient gradient = gradientRepository.findById(decGradientId)
+                .orElseThrow(() -> new EntityNotFoundException("Gradient not found"));
+
+        gradient.setHexColor1(updatedGradientDto.getHexColor1());
+        gradient.setHexColor2(updatedGradientDto.getHexColor2());
+        gradient.setHexColor3(updatedGradientDto.getHexColor3());
+        return convertGradientToDto(gradientRepository.save(gradient));
+    }
+
+
+    @Override
+    public void deleteGradient(String userId, String gradientId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        Long decGradientId = Long.parseLong(textEncryptor.decrypt(gradientId));
+
+        List<Album> albums = albumRepository.findAlbumByGradient_Id(decGradientId);
+        albums.forEach(album -> album.setGradient(null));
+
+        albumRepository.saveAllAndFlush(albums);
+
+        gradientRepository.deleteByIdAndUserId(decGradientId, decUserId);
+    }
+
+    @Override
+    public List<IconDto> getUserIcons(String userId) {
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+
+        return iconRepository.getUserAlbumIcons(decUserId)
+                .stream().map(icon -> {
+                    String encIconId = textEncryptor.encrypt(icon.getId().toString());
+                    return albumMapper.iconToIconDto(icon, encIconId, userId);
+                }
+                ).toList();
+    }
+
+    @Override
+    public IconDto saveNewIcon(MultipartFile newIcon) {
         return null;
     }
 
     @Override
-    public List<AlbumDto> getUserAlbums(String userId) {
-        return getAlbumDtoList(userId);
-    }
-
-    @Override
-    public List<AlbumDto> createAlbumWithNewIcon(NewAlbumDto newAlbumDto, MultipartFile albumIcon) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
-        Icon newIcon = Icon
-                .builder()
-                .path(saveAlbumIconFile(albumIcon, newAlbumDto.getTgUserId()))
-                .tgUserId(decUserId)
-                .build();
-        Long decGradientId = decodeGradientId(newAlbumDto);
-        Album newAlbum = albumMapper.newAlbumDtoToAlbum(
-                newAlbumDto,
-                newIcon,
-                decUserId,
-                decGradientId);
-        newAlbum.setPlayListPlace(albumRepository.getUserAlbumsCount(decUserId));
-        albumRepository.save(newAlbum);
-        return getAlbumDtoList(newAlbumDto.getTgUserId());
-    }
-
-    @Override
-    public List<AlbumDto> createAlbumWithExistingIcon(NewAlbumDto newAlbumDto, AlbumIconDto albumIconDto) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
-        Long decGradientId = decodeGradientId(newAlbumDto);
-        Long decIconId = Long.parseLong(albumIconDto.getId());
-        Icon existingIcon = iconRepository.findById(decIconId)
-                .orElseThrow(() -> new EntityNotFoundException("Album icon not found"));
-        Album newAlbum = albumMapper.newAlbumDtoToAlbum(
-                newAlbumDto,
-                existingIcon,
-                decUserId,
-                decGradientId,
-                decIconId);
-        newAlbum.setPlayListPlace(albumRepository.getUserAlbumsCount(decUserId));
-
-        albumRepository.save(newAlbum);
-
-        return getAlbumDtoList(newAlbumDto.getTgUserId());
-    }
-
-    @Override
-    public List<AlbumDto> createAlbumNoIcon(NewAlbumDto newAlbumDto) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
-        Long decGradientId = decodeGradientId(newAlbumDto);
-        Album newAlbum = albumMapper.newAlbumDtoToAlbum(
-                newAlbumDto,
-                decUserId,
-                decGradientId);
-        newAlbum.setPlayListPlace(albumRepository.getUserAlbumsCount(decUserId));
-        albumRepository.save(newAlbum);
-
-        return getAlbumDtoList(newAlbumDto.getTgUserId());
-    }
-
-    @Override
-    public List<AlbumDto> updateAlbum(AlbumDto albumDto) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(albumDto.getTgUserId()));
-        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumDto.getId()));
-
-        Album album = albumRepository.findById(decAlbumId)
-                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
-        album.setName(albumDto.getName());
-
-        Icon icon = iconRepository
-                .getAlbumIconByPathAndTgUserId(albumDto.getAlbumIconPath(), decUserId);
-        album.setIcon(icon);
-
-        Gradient gradient = gradientRepository
-                .getAlbumGradientByHexCombinationAndTgUserId(
-                        decUserId,
-                        albumDto.getHexColor1(),
-                        albumDto.getHexColor2(),
-                        albumDto.getHexColor3()
-                );
-        album.setGradient(gradient);
-
-        album.setIsIcon(icon != null);
-
-        albumRepository.save(album);
-
-        return getAlbumDtoList(albumDto.getTgUserId());
-    }
-
-    @Override
-    public List<AlbumDto> deleteAlbum(String userId, String albumId) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
-        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        albumRepository.deleteUserAlbum(decUserId, decAlbumId);
-
-        return getAlbumDtoList(userId);
-    }
-
-    @Override
-    public void playAlbum(String albumId) {
-        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Album album = albumRepository.findById(decAlbumId)
-                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
-        playSetService.generateAlbumPlaySet(album);
-    }
-
-    private List<AlbumGradientDto> getAlbumGradientDtoList(String userId) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
-
-        return gradientRepository.getAllUserGradients(decUserId)
-                .stream()
-                .map(albumMapper::albumGradientToAlbumGradientDto)
-                .toList();
-    }
-
-    @Override
-    public List<AlbumGradientDto> getUserGradients(String userId) {
-        return getAlbumGradientDtoList(userId);
-    }
-
-    @Override
-    public List<AlbumGradientDto> saveAlbumGradient(AlbumGradientDto albumGradientDto) {
-        gradientRepository.save(albumMapper.albumGradientDtoToAlbumGradient(albumGradientDto));
-
-        return getAlbumGradientDtoList(albumGradientDto.getTelegramId());
-    }
-
-    private List<AlbumIconDto> getAlbumIconDtoList(String userId){
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
-
-        return iconRepository.getUserAlbumIcons(decUserId)
-                .stream()
-                .map(albumMapper::albumIconToAlbumIconDto)
-                .toList();
-    }
-
-    @Override
-    public List<AlbumIconDto> getUserIcons(String userId) {
-        return getAlbumIconDtoList(userId);
-    }
-
-    @Override
-    public List<AlbumIconDto> saveUserIcon(AlbumIconDto albumIconDto) {
-        iconRepository.save(albumMapper.albumIconDtoToAlbumIcon(albumIconDto));
-
-        return getAlbumIconDtoList(albumIconDto.getTgUserId());
-    }
-
-    private TrackDto mapTrack(Track track){
-        String encryptedTrackId = textEncryptor.encrypt(track.getId().toString());
-        if(track instanceof TgUserTrack){
-            return trackMapper.toTrackDto((TgUserTrack) track, encryptedTrackId);
-        }
-        else return null;
+    public MultipartFile getIconFile(String iconId) {
+        return null;
     }
 
     @Override
     public List<TrackDto> getAlbumTracks(String albumId) {
-        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Album album = albumRepository.findById(decAlbumId)
-                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
-        return album.getTracks().stream().map(this::mapTrack).toList();
+        return List.of();
     }
 
     @Override
     public AlbumDto dropTrackFromAlbum(String albumId, String trackId) {
-        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+        return null;
+    }
 
-        Album album = albumRepository.findById(decAlbumId)
-                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
-        Track track = trackRepository.findById(decTrackId)
-                .orElseThrow(() -> new EntityNotFoundException("Track not found"));
+    @Override
+    public void playAlbum(String albumId) {
 
-        for(Track trackToDrop : album.getTracks()){
-            if(trackToDrop.equals(track)){
-                album.getTracks().remove(track);
-            }
-        }
-        String encUserId = textEncryptor.encrypt(album.getTgUserId().toString());
-
-        List<String> encTrackIds = album.getTracks()
-                .stream()
-                .map(t ->
-                        textEncryptor.encrypt(t.getId().toString()))
-                .toList();
-
-        return albumMapper.albumToAlbumDto(album, albumId, encUserId, encTrackIds);
     }
 }

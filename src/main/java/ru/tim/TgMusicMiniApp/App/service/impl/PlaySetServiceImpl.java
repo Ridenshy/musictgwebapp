@@ -2,7 +2,6 @@ package ru.tim.TgMusicMiniApp.App.service.impl;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;

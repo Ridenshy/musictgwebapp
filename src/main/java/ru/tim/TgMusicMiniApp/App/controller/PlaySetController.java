@@ -8,7 +8,6 @@ import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/apiV1/playSet")

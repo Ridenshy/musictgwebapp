@@ -2,7 +2,6 @@ package ru.tim.TgMusicMiniApp.App.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.web.bind.annotation.*;
 import ru.tim.TgMusicMiniApp.App.dto.settings.SettingsDto;
 import ru.tim.TgMusicMiniApp.App.dto.settings.UpdatedSettings;

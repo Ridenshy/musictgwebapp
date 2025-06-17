@@ -1,5 +1,6 @@
 package ru.tim.TgMusicMiniApp.App.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
@@ -13,12 +14,12 @@ import ru.tim.TgMusicMiniApp.App.dto.mapper.AlbumMapper;
 import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
-import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumGradient;
-import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumIcon;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
-import ru.tim.TgMusicMiniApp.App.repo.AlbumGradientRepository;
-import ru.tim.TgMusicMiniApp.App.repo.AlbumIconRepository;
+import ru.tim.TgMusicMiniApp.App.repo.GradientRepository;
+import ru.tim.TgMusicMiniApp.App.repo.IconRepository;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumRepository;
 import ru.tim.TgMusicMiniApp.App.repo.TrackRepository;
 import ru.tim.TgMusicMiniApp.App.service.AlbumService;
@@ -39,8 +40,8 @@ public class AlbumServiceImpl implements AlbumService {
     private final PlaySetService playSetService;
 
     private final AlbumRepository albumRepository;
-    private final AlbumGradientRepository albumGradientRepository;
-    private final AlbumIconRepository albumIconRepository;
+    private final GradientRepository gradientRepository;
+    private final IconRepository iconRepository;
     private final TrackRepository trackRepository;
 
     private final AlbumMapper albumMapper;
@@ -106,15 +107,16 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     public List<AlbumDto> createAlbumWithNewIcon(NewAlbumDto newAlbumDto, MultipartFile albumIcon) {
-        AlbumIcon newAlbumIcon = AlbumIcon
-                    .builder()
-                    .path(saveAlbumIconFile(albumIcon, newAlbumDto.getTgUserId()))
-                    .build();
         Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
+        Icon newIcon = Icon
+                .builder()
+                .path(saveAlbumIconFile(albumIcon, newAlbumDto.getTgUserId()))
+                .tgUserId(decUserId)
+                .build();
         Long decGradientId = decodeGradientId(newAlbumDto);
         Album newAlbum = albumMapper.newAlbumDtoToAlbum(
                 newAlbumDto,
-                newAlbumIcon,
+                newIcon,
                 decUserId,
                 decGradientId);
         newAlbum.setPlayListPlace(albumRepository.getUserAlbumsCount(decUserId));
@@ -127,7 +129,8 @@ public class AlbumServiceImpl implements AlbumService {
         Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
         Long decGradientId = decodeGradientId(newAlbumDto);
         Long decIconId = Long.parseLong(albumIconDto.getId());
-        AlbumIcon existingIcon = albumIconRepository.getReferenceById(decIconId);
+        Icon existingIcon = iconRepository.findById(decIconId)
+                .orElseThrow(() -> new EntityNotFoundException("Album icon not found"));
         Album newAlbum = albumMapper.newAlbumDtoToAlbum(
                 newAlbumDto,
                 existingIcon,
@@ -135,6 +138,7 @@ public class AlbumServiceImpl implements AlbumService {
                 decGradientId,
                 decIconId);
         newAlbum.setPlayListPlace(albumRepository.getUserAlbumsCount(decUserId));
+
         albumRepository.save(newAlbum);
 
         return getAlbumDtoList(newAlbumDto.getTgUserId());
@@ -157,22 +161,24 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public List<AlbumDto> updateAlbum(AlbumDto albumDto) {
         Long decUserId = Long.parseLong(textEncryptor.decrypt(albumDto.getTgUserId()));
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumDto.getId()));
 
-        Album album = albumRepository.getReferenceById(decUserId);
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
         album.setName(albumDto.getName());
 
-        AlbumIcon icon = albumIconRepository
+        Icon icon = iconRepository
                 .getAlbumIconByPathAndTgUserId(albumDto.getAlbumIconPath(), decUserId);
-        album.setAlbumIcon(icon);
+        album.setIcon(icon);
 
-        AlbumGradient albumGradient = albumGradientRepository
+        Gradient gradient = gradientRepository
                 .getAlbumGradientByHexCombinationAndTgUserId(
                         decUserId,
                         albumDto.getHexColor1(),
                         albumDto.getHexColor2(),
                         albumDto.getHexColor3()
                 );
-        album.setGradient(albumGradient);
+        album.setGradient(gradient);
 
         album.setIsIcon(icon != null);
 
@@ -193,14 +199,15 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public void playAlbum(String albumId) {
         Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Album album = albumRepository.getReferenceById(decAlbumId);
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
         playSetService.generateAlbumPlaySet(album);
     }
 
     private List<AlbumGradientDto> getAlbumGradientDtoList(String userId) {
         Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
 
-        return albumGradientRepository.getAllUserGradients(decUserId)
+        return gradientRepository.getAllUserGradients(decUserId)
                 .stream()
                 .map(albumMapper::albumGradientToAlbumGradientDto)
                 .toList();
@@ -213,7 +220,7 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     public List<AlbumGradientDto> saveAlbumGradient(AlbumGradientDto albumGradientDto) {
-        albumGradientRepository.save(albumMapper.albumGradientDtoToAlbumGradient(albumGradientDto));
+        gradientRepository.save(albumMapper.albumGradientDtoToAlbumGradient(albumGradientDto));
 
         return getAlbumGradientDtoList(albumGradientDto.getTelegramId());
     }
@@ -221,7 +228,7 @@ public class AlbumServiceImpl implements AlbumService {
     private List<AlbumIconDto> getAlbumIconDtoList(String userId){
         Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
 
-        return albumIconRepository.getUserAlbumIcons(decUserId)
+        return iconRepository.getUserAlbumIcons(decUserId)
                 .stream()
                 .map(albumMapper::albumIconToAlbumIconDto)
                 .toList();
@@ -234,7 +241,7 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     public List<AlbumIconDto> saveUserIcon(AlbumIconDto albumIconDto) {
-        albumIconRepository.save(albumMapper.albumIconDtoToAlbumIcon(albumIconDto));
+        iconRepository.save(albumMapper.albumIconDtoToAlbumIcon(albumIconDto));
 
         return getAlbumIconDtoList(albumIconDto.getTgUserId());
     }
@@ -250,7 +257,8 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public List<TrackDto> getAlbumTracks(String albumId) {
         Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Album album = albumRepository.getReferenceById(decAlbumId);
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
         return album.getTracks().stream().map(this::mapTrack).toList();
     }
 
@@ -259,8 +267,10 @@ public class AlbumServiceImpl implements AlbumService {
         Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
         Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
 
-        Album album = albumRepository.getReferenceById(decAlbumId);
-        Track track = trackRepository.getReferenceById(decTrackId);
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
+        Track track = trackRepository.findById(decTrackId)
+                .orElseThrow(() -> new EntityNotFoundException("Track not found"));
 
         for(Track trackToDrop : album.getTracks()){
             if(trackToDrop.equals(track)){

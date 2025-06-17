@@ -6,8 +6,8 @@ import ru.tim.TgMusicMiniApp.App.dto.album.AlbumGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.AlbumIconDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
-import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumGradient;
-import ru.tim.TgMusicMiniApp.App.entity.Album.AlbumIcon;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
+import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
 
 import java.util.List;
 
@@ -28,18 +28,18 @@ public interface AlbumMapper {
                              List<String> encTrackIds);
 
     @Mapping(target = "tgUserId", expression = "java(decUserId)")
-    @Mapping(target = "albumIcon", expression = "java(albumIcon)")
+    @Mapping(target = "icon", expression = "java(albumIcon)")
     @Mapping(target = "gradient", expression = "java(convertGradient(albumDto, decUserId, decGradientId))")
     Album newAlbumDtoToAlbum(NewAlbumDto albumDto,
-                             AlbumIcon albumIcon,
+                             Icon icon,
                              Long decUserId,
                              Long decGradientId);
 
     @Mapping(target = "tgUserId", expression = "java(decUserId)")
-    @Mapping(target = "albumIcon", expression = "java(albumIcon)")
+    @Mapping(target = "icon", expression = "java(albumIcon)")
     @Mapping(target = "gradient", expression = "java(convertGradient(albumDto, decUserId, decGradientId))")
     Album newAlbumDtoToAlbum(NewAlbumDto albumDto,
-                             AlbumIcon albumIcon,
+                             Icon icon,
                              Long decUserId,
                              Long decGradientId,
                              Long decIconId);
@@ -51,20 +51,20 @@ public interface AlbumMapper {
                              Long decGradientId);
 
 
-    AlbumGradientDto albumGradientToAlbumGradientDto(AlbumGradient albumGradient);
+    AlbumGradientDto albumGradientToAlbumGradientDto(Gradient gradient);
 
-    AlbumGradient albumGradientDtoToAlbumGradient(AlbumGradientDto albumGradientDto);
+    Gradient albumGradientDtoToAlbumGradient(AlbumGradientDto albumGradientDto);
 
-    AlbumIconDto albumIconToAlbumIconDto(AlbumIcon albumIcon);
+    AlbumIconDto albumIconToAlbumIconDto(Icon icon);
 
-    AlbumIcon albumIconDtoToAlbumIcon(AlbumIconDto albumIconDto);
+    Icon albumIconDtoToAlbumIcon(AlbumIconDto albumIconDto);
 
 
-    default AlbumGradient convertGradient(NewAlbumDto albumDto,
-                                          Long decUserId,
-                                          Long decGradientId) {
+    default Gradient convertGradient(NewAlbumDto albumDto,
+                                     Long decUserId,
+                                     Long decGradientId) {
         if(albumDto.getGradient() != null) {
-            return AlbumGradient.builder()
+            return Gradient.builder()
                     .id(decGradientId)
                     .telegramId(decUserId)
                     .hexColor1(albumDto.getGradient().getHexColor1())
@@ -89,7 +89,7 @@ public interface AlbumMapper {
     }
 
     default String getIconPath(Album album) {
-        return album.getAlbumIcon() != null ? album.getAlbumIcon().getPath() : null;
+        return album.getIcon() != null ? album.getIcon().getPath() : null;
     }
 
 }

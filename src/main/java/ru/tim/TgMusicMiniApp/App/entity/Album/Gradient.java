@@ -1,6 +1,5 @@
 package ru.tim.TgMusicMiniApp.App.entity.Album;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,16 +9,22 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-public class AlbumIcon {
+public class Gradient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long tgUserId;
+    private Long telegramId;
 
     @Column(nullable = false)
-    private String path;
+    private String hexColor1;
+
+    @Column(nullable = false)
+    private String hexColor2;
+
+    @Column(nullable = false)
+    private String hexColor3;
 
 }

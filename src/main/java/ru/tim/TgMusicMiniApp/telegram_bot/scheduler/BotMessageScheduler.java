@@ -11,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.tim.TgMusicMiniApp.telegram_bot.TelegramBot;
 import ru.tim.TgMusicMiniApp.telegram_bot.entity.BotMessage;
-import ru.tim.TgMusicMiniApp.telegram_bot.repo.UserInfoRepository;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.BotMessageService;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.CallBackHandler;
 import ru.tim.TgMusicMiniApp.telegram_bot.service.UserInfoService;

@@ -11,7 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.tim.TgMusicMiniApp.App.dto.settings.BotSettingsDto;
-import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
@@ -25,7 +24,6 @@ import ru.tim.TgMusicMiniApp.telegram_bot.utility.KeyBoardUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service

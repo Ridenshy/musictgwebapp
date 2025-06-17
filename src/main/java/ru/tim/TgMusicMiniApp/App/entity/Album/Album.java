@@ -29,13 +29,13 @@ public class Album {
     @Column(nullable = false)
     private Integer playListPlace;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "icon_id")
-    private AlbumIcon albumIcon;
+    private Icon icon;
 
     @ManyToOne
     @JoinColumn(name = "gradient_id")
-    private AlbumGradient gradient;
+    private Gradient gradient;
 
     @Column(nullable = false)
     private Boolean isIcon;

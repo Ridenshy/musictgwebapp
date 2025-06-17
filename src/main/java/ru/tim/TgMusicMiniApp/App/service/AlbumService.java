@@ -1,6 +1,5 @@
 package ru.tim.TgMusicMiniApp.App.service;
 
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tim.TgMusicMiniApp.App.dto.album.AlbumDto;
@@ -9,7 +8,6 @@ import ru.tim.TgMusicMiniApp.App.dto.album.AlbumIconDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 
-import java.io.File;
 import java.util.List;
 
 public interface AlbumService {

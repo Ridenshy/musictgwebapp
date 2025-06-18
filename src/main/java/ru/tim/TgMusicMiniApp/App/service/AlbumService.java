@@ -50,7 +50,7 @@ public interface AlbumService {
     byte[] getIconFile(String iconId);
 
     @Transactional(readOnly = true)
-    List<TrackDto> getAlbumTracks(String albumId);
+    List<TrackDto> getAlbumTracks(List<String> trackIds);
 
     @Transactional
     AlbumDto dropTrackFromAlbum(String albumId, String trackId);

@@ -21,10 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +30,9 @@ public class GoogleDriveService {
 
     @Value("${google.jsonPath}")
     private String CREDENTIALS_FILE_PATH;
+
+    @Value("${google.rootFolderId}")
+    private String driveRootFolder;
 
     private Drive getDriveService() throws GeneralSecurityException, IOException {
         GoogleCredentials credentials = GoogleCredentials.fromStream(
@@ -72,8 +73,12 @@ public class GoogleDriveService {
     }
 
     private String getOrCreateFolder(Drive drive, String folderName) throws IOException {
-        String query = String.format("name='%s' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-                folderName.replace("'", "\\'"));
+        String query = String.format(
+                "name='%s' and mimeType='application/vnd.google-apps.folder' " +
+                        "and '%s' in parents and trashed=false",
+                folderName.replace("'", "\\'"),
+                driveRootFolder
+        );
 
         FileList result = drive.files().list()
                 .setQ(query)
@@ -88,6 +93,7 @@ public class GoogleDriveService {
         File folderMetadata = new File();
         folderMetadata.setName(folderName);
         folderMetadata.setMimeType("application/vnd.google-apps.folder");
+        folderMetadata.setParents(Collections.singletonList(driveRootFolder));
 
         File folder = drive.files().create(folderMetadata)
                 .setFields("id")

@@ -17,6 +17,7 @@ import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
+import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 import ru.tim.TgMusicMiniApp.App.repo.GradientRepository;
 import ru.tim.TgMusicMiniApp.App.repo.IconRepository;
@@ -30,6 +31,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -46,10 +49,6 @@ public class AlbumServiceImpl implements AlbumService {
     private final AlbumMapper albumMapper;
     private final TrackMapper trackMapper;
     private final TextEncryptor textEncryptor;
-
-    @Value("${file-save-dir}")
-    private String albumIconSaveDir;
-
 
     @Override
     public List<AlbumDto> getUserAlbums(String userId) {
@@ -96,19 +95,17 @@ public class AlbumServiceImpl implements AlbumService {
         Long decUserId = Long.parseLong(textEncryptor.decrypt(newAlbumDto.getTgUserId()));
 
         String encGradientId = newAlbumDto.getGradientId();
-        Long decGradientId = null;
         Gradient gradient = null;
         if(encGradientId != null){
-            decGradientId = Long.parseLong(textEncryptor.decrypt(encGradientId));
+            Long decGradientId = Long.parseLong(textEncryptor.decrypt(encGradientId));
             gradient = gradientRepository.findById(decGradientId).orElse(null);
         }
 
         String encIconId = newAlbumDto.getIconId();
-        Long decIconId = null;
         Icon icon = null;
         boolean isIcon = false;
         if(encIconId != null){
-            decIconId = Long.parseLong(textEncryptor.decrypt(encIconId));
+            Long decIconId = Long.parseLong(textEncryptor.decrypt(encIconId));
             icon = iconRepository.findById(decIconId).orElse(null);
             isIcon = true;
         }
@@ -134,17 +131,30 @@ public class AlbumServiceImpl implements AlbumService {
     public AlbumDto updateAlbum(UpdatedAlbumDto updatedAlbumDto) {
 
         Long decAlbumId = Long.parseLong(textEncryptor.decrypt(updatedAlbumDto.getId()));
-        Long decGradientId = Long.parseLong(textEncryptor.decrypt(updatedAlbumDto.getGradientId()));
 
+        String encGradientId = updatedAlbumDto.getGradientId();
+        Gradient gradient = null;
+        if(encGradientId != null){
+            Long decGradientId = Long.parseLong(textEncryptor.decrypt(encGradientId));
+            gradient = gradientRepository.findById(decGradientId)
+                    .orElseThrow(() -> new EntityNotFoundException("Gradient not found"));
+        }
+        String encIconId = updatedAlbumDto.getIconId();
+        Icon icon = null;
+        if(encIconId != null){
+            Long decIconId = Long.parseLong(textEncryptor.decrypt(encIconId));
+            icon = iconRepository.findById(decIconId)
+                    .orElseThrow(() -> new EntityNotFoundException("Icon not found"));
+        }
 
         Album album = albumRepository.findById(decAlbumId)
                 .orElseThrow(() -> new EntityNotFoundException("Album not found"));
-        Gradient gradient = gradientRepository.findById(decGradientId).orElse(null);
-        Icon icon = iconRepository.findById(decGradientId).orElse(null);
+
 
         album.setName(updatedAlbumDto.getName());
         album.setGradient(gradient);
         album.setIcon(icon);
+        album.setIsIcon(icon != null);
 
         Album savedAlbum = albumRepository.save(album);
 
@@ -271,9 +281,19 @@ public class AlbumServiceImpl implements AlbumService {
         }
     }
 
+
     @Override
-    public List<TrackDto> getAlbumTracks(String albumId) {
-        return List.of();
+    public List<TrackDto> getAlbumTracks(List<String> trackIds){
+        return trackIds.stream().map(
+                        id -> {
+                            Long trackId = Long.parseLong(textEncryptor.decrypt(id));
+                            return trackRepository.findById(trackId)
+                                    .map(track -> track.toDto(trackMapper, id))
+                                    .orElse(null);
+                        }
+                )
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override

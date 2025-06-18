@@ -4,6 +4,8 @@ package ru.tim.TgMusicMiniApp.App.entity.track;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import ru.tim.TgMusicMiniApp.App.dto.mapper.TrackMapper;
+import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 
@@ -43,5 +45,7 @@ public abstract class Track { //abstract track entity
 
     @ManyToMany(mappedBy = "tracks")
     private List<Album> albums = new ArrayList<>();
+
+    public abstract TrackDto toDto(TrackMapper mapper, String encTrackId);
 
 }

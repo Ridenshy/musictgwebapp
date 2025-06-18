@@ -13,6 +13,7 @@ import ru.tim.TgMusicMiniApp.App.dto.gradient.NewGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.UpdatedGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.icon.IconDto;
+import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.service.AlbumService;
 
 import java.util.List;
@@ -93,5 +94,9 @@ public class AlbumController {
         return albumService.getIconFile(iconId);
     }
 
+    @GetMapping()
+    public List<TrackDto> getAlbumTracks(@RequestParam List<String> trackIds){
+        return albumService.getAlbumTracks(trackIds);
+    }
 
 }

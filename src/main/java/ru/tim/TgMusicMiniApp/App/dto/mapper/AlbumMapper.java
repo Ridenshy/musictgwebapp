@@ -26,6 +26,7 @@ public interface AlbumMapper {
 
 
     @Mapping(target = "tgUserId", expression = "java(decUserId)")
+    @Mapping(target = "isIcon", expression = "java(isIcon)")
     Album newAlbumDtoToAlbum(NewAlbumDto newAlbum,
                           Long decUserId,
                           Boolean isIcon,

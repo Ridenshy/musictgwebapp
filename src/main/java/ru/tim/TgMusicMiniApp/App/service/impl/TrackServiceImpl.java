@@ -37,7 +37,7 @@ public class TrackServiceImpl implements TrackService {
         List<Track> trackList = trackRepository.getAllTracks(decUserId);
         return trackList.stream()
                 .map(this::mapTrack)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -110,12 +110,8 @@ public class TrackServiceImpl implements TrackService {
     }
 
 
-    //метод чтобы замапить все треки в один лист Dto для фронта
     private TrackDto mapTrack(Track track){
         String encryptedTrackId = textEncryptor.encrypt(track.getId().toString());
-        if(track instanceof TgUserTrack){
-            return mapper.toTrackDto((TgUserTrack) track, encryptedTrackId);
-        }
-        else return null;
+        return track.toDto(mapper, encryptedTrackId);
     }
 }

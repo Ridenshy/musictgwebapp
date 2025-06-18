@@ -30,6 +30,9 @@ public class AlbumDto {
 
     AlbumGradientDto gradient;
 
+    @NotNull
+    Boolean isIcon;
+
     @Positive
     Integer playListPlace;
 

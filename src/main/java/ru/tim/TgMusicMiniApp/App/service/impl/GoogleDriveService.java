@@ -14,10 +14,14 @@ import com.google.api.services.drive.model.FileList;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
+import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,23 +53,30 @@ public class GoogleDriveService {
 
     public String uploadFile(MultipartFile file, String folderName) throws IOException, GeneralSecurityException {
         Drive drive = getDriveService();
-
         String folderId = getOrCreateFolder(drive, folderName);
 
-        File fileMetadata = new File();
-        fileMetadata.setName(file.getOriginalFilename());
-        fileMetadata.setParents(Collections.singletonList(folderId));
+        BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+
+        BufferedImage scaledImage = Scalr.resize(
+                originalImage,
+                Scalr.Method.QUALITY,
+                Scalr.Mode.AUTOMATIC,
+                600, 600
+        );
 
         java.io.File tempFile = java.io.File.createTempFile("upload-", ".tmp");
-        file.transferTo(tempFile);
-
         try {
-            FileContent mediaContent = new FileContent(file.getContentType(), tempFile);
+            String formatName = file.getOriginalFilename().split("\\.")[1].toLowerCase();
+            ImageIO.write(scaledImage, formatName, tempFile);
 
+            File fileMetadata = new File();
+            fileMetadata.setName(file.getOriginalFilename());
+            fileMetadata.setParents(Collections.singletonList(folderId));
+
+            FileContent mediaContent = new FileContent("image/" + formatName, tempFile);
             File uploadedFile = drive.files().create(fileMetadata, mediaContent)
                     .setFields("id")
                     .execute();
-
             return uploadedFile.getId();
         } finally {
             tempFile.delete();

@@ -11,7 +11,7 @@ import java.util.List;
 public interface AlbumRepository extends JpaRepository<Album, Long> {
 
     @EntityGraph(attributePaths = {"icon", "gradient", "tracks"})
-    @Query("SELECT a FROM Album a WHERE a.tgUserId = :userId")
+    @Query("SELECT a FROM Album a WHERE a.tgUserId = :userId ORDER BY a.playListPlace")
     List<Album> getAllUserAlbums(Long userId);
 
     @Query("SELECT COUNT(a) FROM Album a WHERE a.tgUserId = :userId")
@@ -24,4 +24,11 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     List<Album> findAlbumByGradient_Id(Long gradientId);
 
     List<Album> findAlbumByIcon_Id(Long iconId);
+
+    @Query("SELECT DISTINCT a FROM Album a JOIN a.tracks t WHERE t.id = :trackId")
+    List<Album> findAlbumsContainingTrack(Long trackId);
+
+    @Query("SELECT a FROM Album a WHERE NOT EXISTS " +
+            "(SELECT t FROM Track t JOIN t.albums ta WHERE t.id = :trackId AND ta.id = a.id)")
+    List<Album> findAlbumsNotContainingTrack(Long trackId);
 }

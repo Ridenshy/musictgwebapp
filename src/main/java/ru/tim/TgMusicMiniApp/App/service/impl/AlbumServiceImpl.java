@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tim.TgMusicMiniApp.App.dto.album.*;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.GradientDto;
@@ -17,8 +18,10 @@ import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TrackAlbumType;
 import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
+import ru.tim.TgMusicMiniApp.App.exeptions.UserIconLimitException;
 import ru.tim.TgMusicMiniApp.App.repo.GradientRepository;
 import ru.tim.TgMusicMiniApp.App.repo.IconRepository;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumRepository;
@@ -29,9 +32,7 @@ import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -209,8 +210,7 @@ public class AlbumServiceImpl implements AlbumService {
 
 
     @Override
-    public void deleteGradient(String userId, String gradientId) {
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+    public void deleteGradient(String gradientId) {
         Long decGradientId = Long.parseLong(textEncryptor.decrypt(gradientId));
 
         List<Album> albums = albumRepository.findAlbumByGradient_Id(decGradientId);
@@ -218,7 +218,7 @@ public class AlbumServiceImpl implements AlbumService {
 
         albumRepository.saveAllAndFlush(albums);
 
-        gradientRepository.deleteByIdAndUserId(decGradientId, decUserId);
+        gradientRepository.deleteById(decGradientId);
     }
 
     @Override
@@ -236,20 +236,25 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public IconDto saveNewIcon(MultipartFile newIcon, String userId) {
         String decUserId = textEncryptor.decrypt(userId);
+        Long longDecUserId = Long.parseLong(decUserId);
 
-        try {
-            String fileId = googleDriveService.uploadFile(newIcon, decUserId);
-            Icon icon = Icon.builder()
-                    .tgUserId(Long.parseLong(decUserId))
-                    .path(fileId)
-                    .build();
-            Icon savedIcon = iconRepository.save(icon);
-            String encIconId = textEncryptor.encrypt(savedIcon.getId().toString());
-            return albumMapper.iconToIconDto(savedIcon, encIconId, userId);
-        } catch (IOException | GeneralSecurityException e) {
-            throw new RuntimeException(e);
+        Integer userIconCount = iconRepository.getUserIconCount(longDecUserId);
+        if(userIconCount < 10){
+            try {
+                String fileId = googleDriveService.uploadFile(newIcon, decUserId);
+                Icon icon = Icon.builder()
+                        .tgUserId(Long.parseLong(decUserId))
+                        .path(fileId)
+                        .build();
+                Icon savedIcon = iconRepository.save(icon);
+                String encIconId = textEncryptor.encrypt(savedIcon.getId().toString());
+                return albumMapper.iconToIconDto(savedIcon, encIconId, userId);
+            } catch (IOException | GeneralSecurityException e) {
+                throw new RuntimeException(e);
+            }
+        }else{
+            throw new UserIconLimitException();
         }
-
     }
 
     @Override
@@ -300,6 +305,63 @@ public class AlbumServiceImpl implements AlbumService {
     public AlbumDto dropTrackFromAlbum(String albumId, String trackId) {
         return null;
     }
+
+    @Override
+    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId) {
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+        List<ShortAlbumDto> linkedAlbums = albumRepository.findAlbumsContainingTrack(decTrackId)
+                .stream().map(album -> {
+                    String encAlbumId = textEncryptor.encrypt(album.getId().toString());
+                    return albumMapper.albumToShortAlbumDto(album, encAlbumId);
+                })
+                .toList();
+
+        List<ShortAlbumDto> unlinkedAlbums = albumRepository.findAlbumsNotContainingTrack(decTrackId)
+                .stream().map(album -> {
+                    String encAlbumId = textEncryptor.encrypt(album.getId().toString());
+                    return albumMapper.albumToShortAlbumDto(album, encAlbumId);
+                })
+                .toList();
+
+        Map<TrackAlbumType, List<ShortAlbumDto>> trackAlbumsMap = new HashMap<>();
+        trackAlbumsMap.put(TrackAlbumType.LINKED, linkedAlbums);
+        trackAlbumsMap.put(TrackAlbumType.UNLINKED, unlinkedAlbums);
+
+        return trackAlbumsMap;
+    }
+
+    @Override
+    public void addTrackToAlbum(String albumId, String trackId) {
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
+        Track track = trackRepository.findById(decTrackId)
+                .orElseThrow(() -> new EntityNotFoundException("Track not found"));
+
+        if(!album.getTracks().contains(track)){
+            album.getTracks().add(track);
+            albumRepository.save(album);
+        }
+    }
+
+    @Override
+    public void removeTrackFromAlbum(String albumId, String trackId) {
+        Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
+        Track track = trackRepository.findById(decTrackId)
+                .orElseThrow(() -> new EntityNotFoundException("Track not found"));
+
+        if(album.getTracks().contains(track)){
+            album.getTracks().remove(track);
+            albumRepository.save(album);
+        }
+    }
+
 
     @Override
     public void playAlbum(String albumId) {

@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tim.TgMusicMiniApp.App.dto.album.AlbumDto;
+import ru.tim.TgMusicMiniApp.App.dto.album.ShortAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.UpdatedAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.GradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.NewGradientDto;
@@ -14,9 +15,11 @@ import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.UpdatedGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.icon.IconDto;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TrackAlbumType;
 import ru.tim.TgMusicMiniApp.App.service.AlbumService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/apiV1/album/")
@@ -63,9 +66,8 @@ public class AlbumController {
     }
 
     @DeleteMapping("/deleteGradient")
-    public String deleteAlbumGradient(@RequestParam @NotNull String userId,
-                                      @RequestParam @NotNull String gradientId){
-        albumService.deleteGradient(userId, gradientId);
+    public String deleteAlbumGradient(@RequestParam @NotNull String gradientId){
+        albumService.deleteGradient(gradientId);
         return gradientId;
     }
 
@@ -88,15 +90,32 @@ public class AlbumController {
 
     @GetMapping(
             value = "/getIconFile/{iconId}",
-            produces = MediaType.IMAGE_PNG_VALUE
+            produces = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE}
     )
     public byte[] getIconFile(@PathVariable String iconId){
         return albumService.getIconFile(iconId);
     }
 
-    @GetMapping()
+    @GetMapping("/getTracks")
     public List<TrackDto> getAlbumTracks(@RequestParam List<String> trackIds){
         return albumService.getAlbumTracks(trackIds);
+    }
+
+    @GetMapping("/getTrackAlbumMap")
+    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbums(@NotNull @RequestParam String trackId){
+        return albumService.getTrackAlbumMap(trackId);
+    }
+
+    @PostMapping("/addTrackToAlbum")
+    public void addTrackToAlbum(@NotNull @RequestParam String trackId,
+                                @NotNull @RequestParam String albumId){
+        albumService.addTrackToAlbum(albumId, trackId);
+    }
+
+    @PostMapping("/removeTrackFromAlbum")
+    public void removeTrackFromAlbum(@NotNull @RequestParam String trackId,
+                                     @NotNull @RequestParam String albumId){
+        albumService.removeTrackFromAlbum(albumId, trackId);
     }
 
 }

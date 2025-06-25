@@ -3,6 +3,7 @@ package ru.tim.TgMusicMiniApp.App.dto.mapper;
 import org.mapstruct.*;
 import ru.tim.TgMusicMiniApp.App.dto.album.AlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.album.NewAlbumDto;
+import ru.tim.TgMusicMiniApp.App.dto.album.ShortAlbumDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.GradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.NewGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.icon.IconDto;
@@ -42,5 +43,8 @@ public interface AlbumMapper {
     @Mapping(target = "id", expression = "java(encIconId)")
     @Mapping(target = "tgUserId", expression = "java(encUserId)")
     IconDto iconToIconDto(Icon icon, String encIconId, String encUserId);
+
+    @Mapping(target = "id", expression = "java(encAlbumId)")
+    ShortAlbumDto albumToShortAlbumDto(Album album, String encAlbumId);
 
 }

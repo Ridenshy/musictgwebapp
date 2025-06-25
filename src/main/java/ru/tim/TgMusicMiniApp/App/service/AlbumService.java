@@ -8,8 +8,10 @@ import ru.tim.TgMusicMiniApp.App.dto.gradient.NewGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.UpdatedGradientDto;
 import ru.tim.TgMusicMiniApp.App.dto.icon.IconDto;
 import ru.tim.TgMusicMiniApp.App.dto.track.TrackDto;
+import ru.tim.TgMusicMiniApp.App.entity.enums.TrackAlbumType;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AlbumService {
 
@@ -35,7 +37,7 @@ public interface AlbumService {
     GradientDto updateGradient(UpdatedGradientDto updatedGradientDto);
 
     @Transactional
-    void deleteGradient(String userId, String gradientId);
+    void deleteGradient(String gradientId);
 
     @Transactional(readOnly = true)
     List<IconDto> getUserIcons(String userId);
@@ -55,6 +57,15 @@ public interface AlbumService {
     @Transactional
     AlbumDto dropTrackFromAlbum(String albumId, String trackId);
 
+    @Transactional(readOnly = true)
+    Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId);
+
     @Transactional
     void playAlbum(String albumId);
+
+    @Transactional
+    void addTrackToAlbum(String albumId, String trackId);
+
+    @Transactional
+    void removeTrackFromAlbum(String albumId, String trackId);
 }

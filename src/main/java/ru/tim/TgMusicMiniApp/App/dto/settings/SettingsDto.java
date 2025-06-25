@@ -25,6 +25,6 @@ public class SettingsDto {
 
     @NotNull
     @Min(value = 1)
-    @Max(value = 3)
+    @Max(value = 50)
     Integer amount;
 }

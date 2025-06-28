@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.tim.TgMusicMiniApp.App.dto.album.*;
 import ru.tim.TgMusicMiniApp.App.dto.gradient.GradientDto;
@@ -19,7 +18,6 @@ import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Gradient;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Icon;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TrackAlbumType;
-import ru.tim.TgMusicMiniApp.App.entity.track.TgUserTrack;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
 import ru.tim.TgMusicMiniApp.App.exeptions.UserIconLimitException;
 import ru.tim.TgMusicMiniApp.App.repo.GradientRepository;
@@ -27,19 +25,15 @@ import ru.tim.TgMusicMiniApp.App.repo.IconRepository;
 import ru.tim.TgMusicMiniApp.App.repo.AlbumRepository;
 import ru.tim.TgMusicMiniApp.App.repo.TrackRepository;
 import ru.tim.TgMusicMiniApp.App.service.AlbumService;
-import ru.tim.TgMusicMiniApp.App.service.PlaySetService;
-
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AlbumServiceImpl implements AlbumService {
 
-    private final PlaySetService playSetService;
     private final GoogleDriveService googleDriveService;
 
     private final AlbumRepository albumRepository;
@@ -50,6 +44,9 @@ public class AlbumServiceImpl implements AlbumService {
     private final AlbumMapper albumMapper;
     private final TrackMapper trackMapper;
     private final TextEncryptor textEncryptor;
+
+    @Value("${icon.limit}")
+    private Integer userIconsLimit;
 
     @Override
     public List<AlbumDto> getUserAlbums(String userId) {
@@ -163,11 +160,9 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public void deleteAlbum(String userId, String albumId) {
+    public void deleteAlbum(String albumId) {
         Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
-        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
-
-        albumRepository.deleteUserAlbum(decUserId, decAlbumId);
+        albumRepository.deleteUserAlbum(decAlbumId);
 
     }
 
@@ -239,7 +234,7 @@ public class AlbumServiceImpl implements AlbumService {
         Long longDecUserId = Long.parseLong(decUserId);
 
         Integer userIconCount = iconRepository.getUserIconCount(longDecUserId);
-        if(userIconCount < 10){
+        if(userIconCount < userIconsLimit){
             try {
                 String fileId = googleDriveService.uploadFile(newIcon, decUserId);
                 Icon icon = Icon.builder()
@@ -301,10 +296,6 @@ public class AlbumServiceImpl implements AlbumService {
                 .toList();
     }
 
-    @Override
-    public AlbumDto dropTrackFromAlbum(String albumId, String trackId) {
-        return null;
-    }
 
     @Override
     public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId) {
@@ -363,8 +354,4 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
 
-    @Override
-    public void playAlbum(String albumId) {
-
-    }
 }

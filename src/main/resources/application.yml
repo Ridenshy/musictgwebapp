@@ -14,7 +14,7 @@ spring:
   config:
     use-legacy-processing: false
     import:
-     - classpath:telegramValues.yml
+     - classpath:values.yml
      - classpath:databaseConnection.yml
      - classpath:encrypt.yml
 

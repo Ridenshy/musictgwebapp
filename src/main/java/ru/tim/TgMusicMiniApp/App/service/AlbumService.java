@@ -25,7 +25,7 @@ public interface AlbumService {
     AlbumDto updateAlbum(UpdatedAlbumDto albumDto);
 
     @Transactional
-    void deleteAlbum(String userId, String albumId);
+    void deleteAlbum(String albumId);
 
     @Transactional(readOnly = true)
     List<GradientDto> getUserGradients(String userId);
@@ -54,14 +54,8 @@ public interface AlbumService {
     @Transactional(readOnly = true)
     List<TrackDto> getAlbumTracks(List<String> trackIds);
 
-    @Transactional
-    AlbumDto dropTrackFromAlbum(String albumId, String trackId);
-
     @Transactional(readOnly = true)
     Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId);
-
-    @Transactional
-    void playAlbum(String albumId);
 
     @Transactional
     void addTrackToAlbum(String albumId, String trackId);

@@ -1,13 +1,16 @@
 package ru.tim.TgMusicMiniApp.App.service.impl;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import ru.tim.TgMusicMiniApp.App.entity.Album.Album;
 import ru.tim.TgMusicMiniApp.App.entity.enums.TypeName;
 import ru.tim.TgMusicMiniApp.App.entity.playset.PlaySet;
 import ru.tim.TgMusicMiniApp.App.entity.settings.Settings;
 import ru.tim.TgMusicMiniApp.App.entity.track.Track;
+import ru.tim.TgMusicMiniApp.App.repo.AlbumRepository;
 import ru.tim.TgMusicMiniApp.App.repo.PlaySetRepository;
 import ru.tim.TgMusicMiniApp.App.repo.TrackRepository;
 import ru.tim.TgMusicMiniApp.App.repo.SettingsRepository;
@@ -23,8 +26,10 @@ public class PlaySetServiceImpl implements PlaySetService {
     private final PlaySetRepository playSetRepository;
     private final SettingsRepository settingsRepository;
     private final TrackRepository trackRepository;
+    private final AlbumRepository albumRepository;
 
     private final Random random = new Random();
+    private final TextEncryptor textEncryptor;
 
     @Override
     public void generateStandardPlaySet(Long userId) {
@@ -87,9 +92,13 @@ public class PlaySetServiceImpl implements PlaySetService {
     }
 
     @Override
-    public void generateAlbumPlaySet(Album album) {
+    public void generateAlbumPlaySet(String albumId) {
+        Long decAlbumId = Long.parseLong(textEncryptor.decrypt(albumId));
+        Album album = albumRepository.findById(decAlbumId)
+                .orElseThrow(() -> new EntityNotFoundException("Album not found"));
         PlaySet playSet = playSetRepository.getPlaySet(album.getTgUserId());
-        playSet.setTracks(album.getTracks());
+        playSet.getTracks().clear();
+        album.getTracks().forEach(track -> {playSet.getTracks().add(track);});
         playSet.setAlreadyPlayed(0);
         playSet.setLastDropAmount(0);
         playSetRepository.save(playSet);

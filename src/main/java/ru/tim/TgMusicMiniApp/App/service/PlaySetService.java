@@ -19,7 +19,7 @@ public interface PlaySetService {
     void generatePackPlaySet(Long userId, List<Long> trackIds);
 
     @Transactional
-    void generateAlbumPlaySet(Album album);
+    void generateAlbumPlaySet(String albumId);
 
     @Transactional
     void updateAlreadyPlayed(Long userId, Integer newAmount, Integer newLastAmount);
@@ -29,6 +29,5 @@ public interface PlaySetService {
 
     @Transactional
     void createNewUserPlaySet(Long userId);
-
 
 }

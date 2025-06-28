@@ -21,6 +21,4 @@ public interface BotMessageService {
     @Transactional(readOnly = true)
     List<BotMessage> getExpiredSoonMessages(Long userId);
 
-
-
 }

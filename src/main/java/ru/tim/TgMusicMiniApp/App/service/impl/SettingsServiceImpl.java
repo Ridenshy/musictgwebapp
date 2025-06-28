@@ -34,16 +34,6 @@ public class SettingsServiceImpl implements SettingsService {
                 .toList();
     }
 
-
-
-    @Override
-    public SettingsDto getSettingsDto(Long userId, TypeName typeName) {
-        return settingsMapper.toSettingsDto(
-                settingsRepository.getSettings(userId, typeName),
-                textEncryptor.encrypt(userId.toString())
-        );
-    }
-
     @Override
     public SettingsDto setActiveSettings(SettingsDto settingsDto) {
         Long userId = Long.parseLong(textEncryptor.decrypt(settingsDto.getTgUserId()));
@@ -59,11 +49,6 @@ public class SettingsServiceImpl implements SettingsService {
         return settingsMapper.toBotSettingsDto(
                 settingsRepository.getActiveSettings(userId)
         );
-    }
-
-    @Override
-    public Settings getTypeSettings(Long userId, TypeName typeName) {
-        return settingsRepository.getSettings(userId, typeName);
     }
 
     @Override

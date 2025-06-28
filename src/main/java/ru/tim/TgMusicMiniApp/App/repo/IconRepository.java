@@ -11,9 +11,6 @@ public interface IconRepository extends JpaRepository<Icon, Long> {
     @Query("SELECT ai FROM Icon ai WHERE ai.tgUserId = :userId")
     List<Icon> getUserAlbumIcons(Long userId);
 
-    @Query("SELECT ai FROM Icon ai WHERE ai.path = :path AND ai.tgUserId = :userId")
-    Icon getAlbumIconByPathAndTgUserId(String path, Long userId);
-
     @Query("SELECT COUNT(i) FROM Icon i WHERE i.tgUserId = :userId")
     Integer getUserIconCount(Long userId);
 

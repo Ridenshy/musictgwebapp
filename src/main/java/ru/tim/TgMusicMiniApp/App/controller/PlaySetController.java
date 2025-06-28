@@ -50,4 +50,13 @@ public class PlaySetController {
         return "SW play set generated";
     }
 
+    @PostMapping("/generateAlbum")
+    public String generateAlbumPlaySet(@RequestParam @NotNull String encUserId,
+                                       @RequestParam @NotNull String albumId){
+        Long userId = Long.parseLong(textEncryptor.decrypt(encUserId));
+        playSetService.generateAlbumPlaySet(albumId);
+        callBackHandler.sendPlaySetTracks(userId, "");
+        return "Album generated";
+    }
+
 }

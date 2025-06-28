@@ -41,12 +41,6 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public List<Track> getAllUserTracksEntity(Long userId) {
-        return trackRepository.getAllTracks(userId);
-    }
-
-
-    @Override
     public List<TrackDto> deleteTrack(String trackId, String userId) {
         Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
         Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));

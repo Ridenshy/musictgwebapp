@@ -32,6 +32,4 @@ public interface SettingsRepository extends JpaRepository<Settings, Long> {
             "WHERE s.tgUserId = :userId AND s.typeName = :typeName")
     void updateSettings(Long userId, TypeName typeName, TypeType newTypeType, Integer newAmount);
 
-
-
 }

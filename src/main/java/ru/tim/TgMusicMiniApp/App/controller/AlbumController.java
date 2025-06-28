@@ -2,7 +2,10 @@ package ru.tim.TgMusicMiniApp.App.controller;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +23,7 @@ import ru.tim.TgMusicMiniApp.App.service.AlbumService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/apiV1/album/")
@@ -44,9 +48,8 @@ public class AlbumController {
     }
 
     @DeleteMapping("/deleteAlbum")
-    public String deleteAlbum(@RequestParam @NotNull String userId,
-                              @RequestParam @NotNull String albumId){
-        albumService.deleteAlbum(userId, albumId);
+    public String deleteAlbum(@RequestParam @NotNull String albumId){
+        albumService.deleteAlbum(albumId);
         return albumId;
     }
 
@@ -92,8 +95,12 @@ public class AlbumController {
             value = "/getIconFile/{iconId}",
             produces = {MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE}
     )
-    public byte[] getIconFile(@PathVariable String iconId){
-        return albumService.getIconFile(iconId);
+    public ResponseEntity<byte[]> getIconFile(@PathVariable String iconId){
+        byte[] file = albumService.getIconFile(iconId);
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS))
+                .body(file);
     }
 
     @GetMapping("/getTracks")
@@ -112,7 +119,7 @@ public class AlbumController {
         albumService.addTrackToAlbum(albumId, trackId);
     }
 
-    @PostMapping("/removeTrackFromAlbum")
+    @DeleteMapping("/removeTrackFromAlbum")
     public void removeTrackFromAlbum(@NotNull @RequestParam String trackId,
                                      @NotNull @RequestParam String albumId){
         albumService.removeTrackFromAlbum(albumId, trackId);

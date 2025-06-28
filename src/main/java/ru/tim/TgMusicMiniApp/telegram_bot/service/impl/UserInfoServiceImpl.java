@@ -31,5 +31,4 @@ public class UserInfoServiceImpl implements UserInfoService {
         return userInfoRepository.getAllUniqueUsers();
     }
 
-
 }

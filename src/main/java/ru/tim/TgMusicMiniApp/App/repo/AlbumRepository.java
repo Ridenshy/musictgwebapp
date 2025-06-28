@@ -18,8 +18,8 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     Integer getUserAlbumsCount(Long userId);
 
     @Modifying
-    @Query("DELETE FROM Album a WHERE a.tgUserId = :userId AND a.id = :albumId")
-    void deleteUserAlbum(Long userId, Long albumId);
+    @Query("DELETE FROM Album a WHERE a.id = :albumId")
+    void deleteUserAlbum(Long albumId);
 
     List<Album> findAlbumByGradient_Id(Long gradientId);
 

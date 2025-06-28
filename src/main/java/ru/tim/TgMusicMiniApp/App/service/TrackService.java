@@ -16,9 +16,6 @@ public interface TrackService {
     @Transactional(readOnly = true)
     List<TrackDto> getAllUserTracks(String userId);
 
-    @Transactional(readOnly = true)
-    List<Track> getAllUserTracksEntity(Long userId);
-
     @Transactional
     List<TrackDto> deleteTrack(String trackId, String userId);
 
@@ -27,7 +24,5 @@ public interface TrackService {
 
     @Transactional(readOnly = true)
     Integer getTracksAmount(Long userId);
-
-
 
 }

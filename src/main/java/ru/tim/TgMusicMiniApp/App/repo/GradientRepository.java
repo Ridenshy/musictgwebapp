@@ -12,10 +12,6 @@ public interface GradientRepository extends JpaRepository<Gradient, Long> {
     @Query("SELECT g FROM Gradient g WHERE g.tgUserId = :userId")
     List<Gradient> getAllUserGradients(Long userId);
 
-    @Query("SELECT g FROM Gradient g " +
-            "WHERE g.tgUserId = :userId AND g.id = :gradientId")
-    Gradient getAlbumGradientByIdAndUserId(Long gradientId, Long userId);
-
     @Modifying
     @Query("DELETE FROM Gradient g WHERE g.id = :gradientId")
     void deleteById(Long gradientId);

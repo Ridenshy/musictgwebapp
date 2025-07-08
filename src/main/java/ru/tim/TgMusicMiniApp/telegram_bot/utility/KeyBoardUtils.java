@@ -1,6 +1,7 @@
 package ru.tim.TgMusicMiniApp.telegram_bot.utility;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.beans.factory.annotation.Value;
 import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButtonWebApp;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -27,11 +28,12 @@ public class KeyBoardUtils {
                 .build();
     }
 
-    public static MenuButtonWebApp webAppButton(){
-
+    public static MenuButtonWebApp webAppButton(String userId){
+        String webAppUrl = String.format("https://ridporj.axldev.space:8443/?userId=%s", userId);
+        System.out.println(webAppUrl);
         return MenuButtonWebApp.builder()
-                .webAppInfo(new WebAppInfo("https://www.wikipedia.org"))
-                .text("Open")
+                .webAppInfo(new WebAppInfo(webAppUrl))
+                .text("Open App test")
                 .build();
 
     }

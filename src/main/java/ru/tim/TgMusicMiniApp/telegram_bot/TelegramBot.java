@@ -2,6 +2,7 @@ package ru.tim.TgMusicMiniApp.telegram_bot;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -27,6 +28,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final SettingsService settingsService;
     private final UserInfoService userInfoService;
     private final CallBackHandler callBackHandler;
+    private final TextEncryptor textEncryptor;
 
     @Autowired
     public TelegramBot(BotProperty botProperty,
@@ -34,6 +36,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                        PlaySetService playSetService,
                        SettingsService settingsService,
                        UserInfoService userInfoService,
+                       TextEncryptor textEncryptor,
                        @Lazy CallBackHandler callBackHandler) {
         super(new DefaultBotOptions(), botProperty.token());
         this.botProperty = botProperty;
@@ -42,6 +45,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.settingsService = settingsService;
         this.userInfoService = userInfoService;
         this.callBackHandler = callBackHandler;
+        this.textEncryptor = textEncryptor;
 
     }
 
@@ -59,8 +63,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                     userInfoService.addNewUser(userId);
                     playSetService.createNewUserPlaySet(userId);
                     settingsService.createTypesSettings(userId);
-                    sendWebAppButton(userId);
                 }
+                sendWebAppButton(userId);
             }
             else if(update.getMessage().hasAudio()){
                 Audio track = update.getMessage().getAudio();
@@ -85,10 +89,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 
     private void sendWebAppButton(Long userId){
-
+        String encUserId = textEncryptor.encrypt(userId.toString());
         SetChatMenuButton setChatMenuButton = SetChatMenuButton.builder()
                 .chatId(userId)
-                .menuButton(KeyBoardUtils.webAppButton())
+                .menuButton(KeyBoardUtils.webAppButton(encUserId))
                 .build();
         try {
             execute(setChatMenuButton);
@@ -96,4 +100,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             throw new RuntimeException(e);
         }
     }
+
+
 }

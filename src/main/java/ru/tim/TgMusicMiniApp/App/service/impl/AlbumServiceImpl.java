@@ -298,16 +298,17 @@ public class AlbumServiceImpl implements AlbumService {
 
 
     @Override
-    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId) {
+    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId, String userId) {
         Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));
-        List<ShortAlbumDto> linkedAlbums = albumRepository.findAlbumsContainingTrack(decTrackId)
+        Long decUserId = Long.parseLong(textEncryptor.decrypt(userId));
+        List<ShortAlbumDto> linkedAlbums = albumRepository.findAlbumsContainingTrack(decTrackId, decUserId)
                 .stream().map(album -> {
                     String encAlbumId = textEncryptor.encrypt(album.getId().toString());
                     return albumMapper.albumToShortAlbumDto(album, encAlbumId);
                 })
                 .toList();
 
-        List<ShortAlbumDto> unlinkedAlbums = albumRepository.findAlbumsNotContainingTrack(decTrackId)
+        List<ShortAlbumDto> unlinkedAlbums = albumRepository.findAlbumsNotContainingTrack(decTrackId, decUserId)
                 .stream().map(album -> {
                     String encAlbumId = textEncryptor.encrypt(album.getId().toString());
                     return albumMapper.albumToShortAlbumDto(album, encAlbumId);

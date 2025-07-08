@@ -109,8 +109,9 @@ public class AlbumController {
     }
 
     @GetMapping("/getTrackAlbumMap")
-    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbums(@NotNull @RequestParam String trackId){
-        return albumService.getTrackAlbumMap(trackId);
+    public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbums(@NotNull @RequestParam String trackId,
+                                                                   @NotNull @RequestParam String userId){
+        return albumService.getTrackAlbumMap(trackId, userId);
     }
 
     @PostMapping("/addTrackToAlbum")

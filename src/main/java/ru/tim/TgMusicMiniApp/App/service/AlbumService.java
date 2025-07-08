@@ -55,7 +55,7 @@ public interface AlbumService {
     List<TrackDto> getAlbumTracks(List<String> trackIds);
 
     @Transactional(readOnly = true)
-    Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId);
+    Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId, String userId);
 
     @Transactional
     void addTrackToAlbum(String albumId, String trackId);

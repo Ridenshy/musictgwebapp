@@ -296,7 +296,6 @@ public class AlbumServiceImpl implements AlbumService {
                 .toList();
     }
 
-
     @Override
     public Map<TrackAlbumType, List<ShortAlbumDto>> getTrackAlbumMap(String trackId, String userId) {
         Long decTrackId = Long.parseLong(textEncryptor.decrypt(trackId));

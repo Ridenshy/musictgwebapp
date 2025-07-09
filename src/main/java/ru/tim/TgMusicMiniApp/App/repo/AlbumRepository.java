@@ -26,7 +26,7 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
     List<Album> findAlbumByIcon_Id(Long iconId);
 
     @Query("SELECT DISTINCT a FROM Album a JOIN a.tracks t WHERE t.id = :trackId AND t.tgUserId = :userId")
-    List<Album> findAlbumsContainingTrack(Long trackId, Long userid);
+    List<Album> findAlbumsContainingTrack(Long trackId, Long userId);
 
     @Query("SELECT a FROM Album a WHERE NOT EXISTS " +
             "(SELECT t FROM Track t JOIN t.albums ta WHERE t.id = :trackId AND ta.id = a.id AND t.tgUserId = :userId)")
